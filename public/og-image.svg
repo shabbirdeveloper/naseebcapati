@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <circle cx="1030" cy="100" r="180" fill="#f7f8f6"/>
+  <circle cx="1080" cy="560" r="270" fill="#dce6df" opacity=".72"/>
+  <path d="M0 500 C240 410 390 560 610 470S930 410 1200 490V630H0Z" fill="#12382b"/>
+  <text x="88" y="190" fill="#1f4d3a" font-family="Montserrat,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="6">NASEEB</text>
+  <text x="88" y="247" fill="#111111" font-family="Montserrat,Arial,sans-serif" font-size="64" font-weight="800">Authentic Flavours,</text>
+  <text x="88" y="320" fill="#111111" font-family="Montserrat,Arial,sans-serif" font-size="64" font-weight="800">Freshly Served</text>
+  <text x="88" y="390" fill="#4f5852" font-family="Montserrat,Arial,sans-serif" font-size="25">Pakistani chapati, naan, biryani, grills and family meals.</text>
+  <text x="88" y="565" fill="#ffffff" font-family="Montserrat,Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="3">NASEEB CHAPATI RESTAURANT</text>
+</svg>
