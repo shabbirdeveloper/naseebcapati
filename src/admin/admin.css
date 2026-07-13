@@ -500,3 +500,39 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-root *, .admin-root *::before, .admin-root *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Homepage hero slide manager */
+.admin-hero-slides-panel { overflow: hidden; }
+.admin-hero-slides-panel > .admin-panel-heading { align-items: center; }
+.admin-hero-slides-panel > .admin-panel-heading p { max-width: 600px; margin: 6px 0 0; color: var(--admin-muted); font-size: 10px; line-height: 1.5; }
+.admin-hero-slide-list { display: grid; gap: 14px; }
+.admin-hero-slide-card { overflow: hidden; border: 1px solid var(--admin-border); border-radius: 13px; background: var(--admin-white); }
+.admin-hero-slide-card-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; background: var(--admin-soft); border-bottom: 1px solid var(--admin-border); }
+.admin-hero-slide-card-head > div:first-child { display: grid; gap: 3px; min-width: 0; }
+.admin-hero-slide-card-head strong { overflow: hidden; color: var(--admin-black); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.admin-hero-slide-actions { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; }
+.admin-hero-slide-actions button:disabled { opacity: .35; cursor: not-allowed; }
+.admin-hero-slide-layout { display: grid; grid-template-columns: minmax(190px, .72fr) minmax(0, 1.28fr); gap: 17px; padding: 16px; }
+.admin-hero-slide-media { display: grid; align-content: start; gap: 10px; }
+.admin-hero-slide-media > img { width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: var(--admin-soft); object-fit: cover; }
+.admin-hero-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.admin-hero-upload-button { position: relative; justify-content: center; min-height: 34px; padding-inline: 8px; overflow: hidden; font-size: 9px; }
+.admin-hero-upload-button input { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; opacity: 0; }
+.admin-hero-upload-button:has(input:disabled) { opacity: .55; cursor: wait; }
+.admin-hero-uploading { color: var(--admin-green); font-size: 9px; font-weight: 700; }
+.admin-hero-slide-layout .admin-editor-form { gap: 10px; }
+.admin-hero-active-row { margin: 0; padding: 11px 16px; border-top: 1px solid var(--admin-border); background: #fbfcfb; }
+.admin-hero-active-row .admin-switch { margin-left: 0; }
+.admin-hero-active-row span:last-child { color: var(--admin-black); font-weight: 700; }
+.admin-chevron-up { transform: rotate(180deg); }
+
+@media (max-width: 760px) {
+  .admin-hero-slides-panel > .admin-panel-heading { align-items: flex-start; flex-direction: column; }
+  .admin-hero-slides-panel > .admin-panel-heading > button { width: 100%; justify-content: center; }
+  .admin-hero-slide-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .admin-hero-slide-card-head { align-items: flex-start; flex-direction: column; }
+  .admin-hero-slide-actions { width: 100%; justify-content: flex-end; }
+}
