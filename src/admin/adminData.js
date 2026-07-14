@@ -222,19 +222,38 @@ function normalizeAdminState(state) {
 
 export function readAdminState() {
   if (typeof window === 'undefined') return makeSeedState();
+  let stored;
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    const normalized = normalizeAdminState(stored ? JSON.parse(stored) : makeSeedState());
-    if (stored) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-    return normalized;
+    stored = window.localStorage.getItem(STORAGE_KEY);
   } catch {
     return normalizeAdminState(makeSeedState());
   }
+  let parsed;
+  try {
+    parsed = stored ? JSON.parse(stored) : makeSeedState();
+  } catch {
+    return normalizeAdminState(makeSeedState());
+  }
+  const normalized = normalizeAdminState(parsed);
+  if (stored) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    } catch (error) {
+      console.warn('Admin state is larger than local browser storage; connect Supabase to persist uploads.', error);
+    }
+  }
+  return normalized;
 }
 
 export function saveAdminState(state) {
   const normalized = normalizeAdminState(state);
-  if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    } catch (error) {
+      console.warn('Admin state could not be saved to local browser storage; connect Supabase for production persistence.', error);
+    }
+  }
   return normalized;
 }
 
