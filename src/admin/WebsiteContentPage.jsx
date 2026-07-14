@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { ArrowUpRight, ChevronDown, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
-import { heroSlides as defaultHeroSlides } from '../data/content';
+import { heroSlides as defaultHeroSlides, normalizeHeroSlides } from '../data/content';
 import { isSupabaseConfigured, uploadMediaFile } from '../lib/supabase';
 
-const normalizeSlides = (slides) => (slides?.length ? slides : defaultHeroSlides).map((slide, index) => ({
-  ...slide,
-  id: slide.id || `hero-${index + 1}`,
-  order: slide.order || index + 1,
-  active: slide.active !== false,
-}));
+const normalizeSlides = (slides) => {
+  const normalized = normalizeHeroSlides(slides);
+  const source = normalized.length ? normalized : normalizeHeroSlides(defaultHeroSlides);
+  return source.map((slide, index) => ({
+    ...slide,
+    id: slide.id || `hero-${index + 1}`,
+    order: slide.order || index + 1,
+    active: slide.active !== false,
+  }));
+};
 
 const fileToDataUrl = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -80,7 +84,7 @@ function WebsiteContentPage({ state, commit, notify }) {
     }
   };
   const saveHomepage = () => {
-    const slides = draft.heroSlides.map((slide, index) => ({ ...slide, order: index + 1 }));
+    const slides = normalizeSlides(draft.heroSlides).map((slide, index) => ({ ...slide, order: index + 1 }));
     if (!slides.some((slide) => slide.active !== false && slide.desktopImage)) {
       notify('Keep at least one active hero slide with a desktop image.');
       return;

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, LazyMotion, domAnimation, m as motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
@@ -251,7 +251,7 @@ function AppShell({ children }) {
 }
 
 function Hero() {
-  const slides = heroSlides.filter((slide) => slide.active !== false && slide.desktopImage);
+  const slides = (Array.isArray(heroSlides) ? heroSlides : []).filter((slide) => slide.active !== false && slide.desktopImage);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const pointerStart = useRef(null);
@@ -275,7 +275,8 @@ function QuickInfo() {
 }
 
 function FoodCoverflow() {
-  const slides = (homepageContent.featuredItems?.length ? homepageContent.featuredItems.map((id) => menuItems.find((item) => item.id === id)).filter(Boolean) : menuItems).slice(0, 7);
+  const featuredItems = Array.isArray(homepageContent.featuredItems) ? homepageContent.featuredItems : [];
+  const slides = (featuredItems.length ? featuredItems.map((id) => menuItems.find((item) => item.id === id)).filter(Boolean) : menuItems).slice(0, 7);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -432,10 +433,20 @@ function ContactPageDynamic() {
 
 function NotFoundPage() { return <section className="not-found"><div><span className="eyebrow">404</span><h1>That page took a wrong turn.</h1><p>Let’s get you back to the food.</p><Button href="/" variant="primary" icon={Home}>Back home</Button></div></section>; }
 
+class AdminErrorBoundary extends Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error) { console.error('Admin console render error:', error); }
+  render() {
+    if (!this.state.hasError) return this.props.children;
+    return <div className="admin-fatal-error"><div><span className="admin-eyebrow">Admin console</span><h1>We’re restoring the workspace.</h1><p>The last content update could not be rendered safely. Your saved content is still protected.</p><button className="admin-primary-button" type="button" onClick={() => window.location.reload()}>Reload admin</button><a href="/" onClick={(event) => { event.preventDefault(); window.location.href = '/'; }}>Preview website</a></div></div>;
+  }
+}
+
 function App() {
   const [path, setPath] = useState(getPath());
   useEffect(() => { const handle = () => setPath(getPath()); window.addEventListener('popstate', handle); return () => window.removeEventListener('popstate', handle); }, []);
-  if (path.startsWith('/admin')) return <AdminApp />;
+  if (path.startsWith('/admin')) return <AdminErrorBoundary><AdminApp /></AdminErrorBoundary>;
   let page = <NotFoundPage />;
   if (path === '/') page = <HomePage />;
   else if (path === '/menu') page = <MenuPage />;

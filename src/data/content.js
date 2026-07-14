@@ -60,7 +60,28 @@ const defaultHomepageContent = {
 
 export const homepageContent = { ...defaultHomepageContent, ...(persistedAdminState?.homepage || {}) };
 
-export const heroSlides = homepageContent.heroSlides?.length ? homepageContent.heroSlides : [
+export function normalizeHeroSlides(value) {
+  let slides = value;
+  if (typeof slides === 'string') {
+    try { slides = JSON.parse(slides); } catch { slides = []; }
+  }
+  if (!Array.isArray(slides)) return [];
+  return slides.filter((slide) => slide && typeof slide === 'object' && !Array.isArray(slide)).map((slide, index) => ({
+    ...slide,
+    id: typeof slide.id === 'string' && slide.id.trim() ? slide.id : `hero-${index + 1}`,
+    heading: typeof slide.heading === 'string' ? slide.heading : '',
+    text: typeof slide.text === 'string' ? slide.text : '',
+    desktopImage: typeof slide.desktopImage === 'string' ? slide.desktopImage : '',
+    mobileImage: typeof slide.mobileImage === 'string' ? slide.mobileImage : '',
+    imageAlt: typeof slide.imageAlt === 'string' ? slide.imageAlt : '',
+    active: slide.active !== false,
+    order: Number.isFinite(Number(slide.order)) ? Number(slide.order) : index + 1,
+  }));
+}
+
+const configuredHeroSlides = normalizeHeroSlides(homepageContent.heroSlides);
+
+export const heroSlides = configuredHeroSlides.length ? configuredHeroSlides : [
   { id: 'hero-main', heading: homepageContent.heroHeading, text: homepageContent.heroText, desktopImage: homepageContent.desktopImage, mobileImage: homepageContent.mobileImage, primaryButtonLabel: homepageContent.primaryButtonLabel, primaryButtonUrl: homepageContent.primaryButtonUrl, secondaryButtonLabel: homepageContent.secondaryButtonLabel, secondaryButtonUrl: homepageContent.secondaryButtonUrl },
   { id: 'hero-sharing', heading: 'Made for sharing', text: 'Gather around warm chapati, fragrant biryani, generous curries, and family favourites prepared with care.', desktopImage: imageUrls.family, mobileImage: imageUrls.family, primaryButtonLabel: 'Explore the Menu', primaryButtonUrl: '/menu', secondaryButtonLabel: 'Find a Branch', secondaryButtonUrl: '/branches' },
   { id: 'hero-grill', heading: 'Warm plates. Big flavour.', text: 'From tandoori grills to comforting drinks and desserts, find something everyone at the table will enjoy.', desktopImage: imageUrls.grill, mobileImage: imageUrls.grill, primaryButtonLabel: 'View Menu', primaryButtonUrl: '/menu', secondaryButtonLabel: 'Order Now', secondaryButtonUrl: 'https://www.foodpanda.my/chain/cx8vw/naseeb-capati-nan' },

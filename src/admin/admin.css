@@ -536,3 +536,13 @@
   .admin-hero-slide-card-head { align-items: flex-start; flex-direction: column; }
   .admin-hero-slide-actions { width: 100%; justify-content: flex-end; }
 }
+
+.admin-fatal-error { display: grid; place-items: center; min-height: 100vh; padding: 32px; background: #f7f8f6; color: var(--admin-black); text-align: center; }
+.admin-fatal-error > div { width: min(100%, 520px); padding: 42px; border: 1px solid var(--admin-border); border-radius: 22px; background: #fff; box-shadow: 0 20px 60px rgba(18, 56, 43, .12); }
+.admin-fatal-error h1 { margin: 10px 0 12px; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.05em; }
+.admin-fatal-error p { margin: 0 auto 24px; color: var(--admin-muted); font-size: 13px; line-height: 1.6; }
+.admin-fatal-error a { display: inline-flex; align-items: center; min-height: 42px; margin-left: 12px; color: var(--admin-green); font-size: 12px; font-weight: 800; }
+@media (max-width: 480px) {
+  .admin-fatal-error > div { padding: 30px 22px; }
+  .admin-fatal-error a { display: flex; justify-content: center; margin: 10px 0 0; }
+}

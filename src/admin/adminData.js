@@ -4,6 +4,7 @@ import {
   galleryItems as publicGallery,
   menuCategories as publicCategories,
   menuItems as publicMenuItems,
+  normalizeHeroSlides,
   promotions as publicPromotions,
   reviews as publicReviews,
   socialLinks as publicSocial,
@@ -190,19 +191,37 @@ const makeSeedState = () => ({
   ],
 });
 
+function normalizeAdminState(state) {
+  const seed = makeSeedState();
+  const incoming = state && typeof state === 'object' && !Array.isArray(state) ? state : {};
+  const incomingHomepage = incoming.homepage && typeof incoming.homepage === 'object' && !Array.isArray(incoming.homepage) ? incoming.homepage : {};
+  return {
+    ...seed,
+    ...incoming,
+    homepage: {
+      ...seed.homepage,
+      ...incomingHomepage,
+      heroSlides: normalizeHeroSlides(incomingHomepage.heroSlides),
+    },
+  };
+}
+
 export function readAdminState() {
   if (typeof window === 'undefined') return makeSeedState();
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored ? { ...makeSeedState(), ...JSON.parse(stored) } : makeSeedState();
+    const normalized = normalizeAdminState(stored ? JSON.parse(stored) : makeSeedState());
+    if (stored) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return normalized;
   } catch {
-    return makeSeedState();
+    return normalizeAdminState(makeSeedState());
   }
 }
 
 export function saveAdminState(state) {
-  if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  return state;
+  const normalized = normalizeAdminState(state);
+  if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+  return normalized;
 }
 
 function pickState(state, keys) {
@@ -316,7 +335,7 @@ function toEnquiryRow(row) {
 }
 
 function mergeAdminState(payload = {}) {
-  return { ...makeSeedState(), ...payload };
+  return normalizeAdminState(payload);
 }
 
 export async function loadAdminState() {
@@ -351,18 +370,18 @@ export async function loadAdminState() {
 }
 
 export async function persistAdminState(state) {
-  saveAdminState(state);
+  const normalized = saveAdminState(state);
   if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local', error: null };
 
-  const reservationRows = (state.reservations || []).map(toReservationRow).filter(Boolean);
-  const enquiryRows = (state.enquiries || []).map(toEnquiryRow).filter(Boolean);
-  const financeRows = (state.financeTransactions || []).map(toFinanceRow).filter(Boolean);
-  const staffRows = (state.staff || []).map(toStaffRow).filter(Boolean);
-  const attendanceRows = (state.attendance || []).map(toAttendanceRow).filter(Boolean);
-  const leaveRows = (state.leaveRequests || []).map(toLeaveRow).filter(Boolean);
+  const reservationRows = (normalized.reservations || []).map(toReservationRow).filter(Boolean);
+  const enquiryRows = (normalized.enquiries || []).map(toEnquiryRow).filter(Boolean);
+  const financeRows = (normalized.financeTransactions || []).map(toFinanceRow).filter(Boolean);
+  const staffRows = (normalized.staff || []).map(toStaffRow).filter(Boolean);
+  const attendanceRows = (normalized.attendance || []).map(toAttendanceRow).filter(Boolean);
+  const leaveRows = (normalized.leaveRequests || []).map(toLeaveRow).filter(Boolean);
   const [contentResult, operationsResult, reservationsResult, enquiriesResult, financeResult, staffResult] = await Promise.all([
-    supabase.from('naseeb_content_state').upsert({ id: CONTENT_ROW_ID, payload: pickState(state, publicStateKeys) }),
-    supabase.from('naseeb_operations_state').upsert({ id: OPERATIONS_ROW_ID, payload: pickState(state, operationsStateKeys) }),
+    supabase.from('naseeb_content_state').upsert({ id: CONTENT_ROW_ID, payload: pickState(normalized, publicStateKeys) }),
+    supabase.from('naseeb_operations_state').upsert({ id: OPERATIONS_ROW_ID, payload: pickState(normalized, operationsStateKeys) }),
     reservationRows.length ? supabase.from('naseeb_reservations').upsert(reservationRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
     enquiryRows.length ? supabase.from('naseeb_enquiries').upsert(enquiryRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
     financeRows.length ? supabase.from('naseeb_finance_transactions').upsert(financeRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
