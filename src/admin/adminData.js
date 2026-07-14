@@ -28,7 +28,7 @@ export const roleCatalog = [
 const statusFor = (index, active = true) => (active ? (index === 2 ? 'Draft' : 'Published') : 'Inactive');
 
 const makeSeedState = () => ({
-  user: { name: 'Admin User', email: 'admin@naseebchapati.com', role: 'super_admin', avatar: 'AU' },
+  user: { name: 'Admin User', email: 'naseebchapatinanpg@gmail.com', role: 'super_admin', avatar: 'AU' },
   menuItems: publicMenuItems.map((item, index) => ({
     ...item,
     slug: item.id,
@@ -174,7 +174,7 @@ const makeSeedState = () => ({
     websiteName: 'Naseeb Chapati Restaurant', websiteUrl: 'https://naseebchapati.com', currency: 'MYR', timezone: 'Asia/Kuala_Lumpur', dateFormat: 'DD MMM YYYY', timeFormat: '12-hour', phone: contactInfo.phone, whatsapp: contactInfo.whatsapp, email: contactInfo.email, address: 'Johor, Malaysia', orderUrl: 'https://www.foodpanda.my/chain/cx8vw/naseeb-capati-nan', copyright: '© 2026 Naseeb Chapati Restaurant. All rights reserved.', maintenance: false, cookieBanner: false, reservationRecipient: contactInfo.email,
   },
   adminUsers: [
-    { id: 'usr-1', name: 'Admin User', email: 'admin@naseebchapati.com', role: 'super_admin', branches: ['All branches'], status: 'Active', lastLogin: 'Today, 08:50 AM' },
+    { id: 'usr-1', name: 'Admin User', email: 'naseebchapatinanpg@gmail.com', role: 'super_admin', branches: ['All branches'], status: 'Active', lastLogin: 'Today, 08:50 AM' },
     { id: 'usr-2', name: 'Content Manager', email: 'content@naseebchapati.com', role: 'content_manager', branches: ['All branches'], status: 'Active', lastLogin: 'Yesterday, 04:20 PM' },
     { id: 'usr-3', name: 'Branch Manager', email: 'pasirgudang@naseebchapati.com', role: 'branch_manager', branches: ['Pasir Gudang'], status: 'Active', lastLogin: 'May 17, 2026' },
   ],
