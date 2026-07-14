@@ -195,7 +195,7 @@ function normalizeAdminState(state) {
   const seed = makeSeedState();
   const incoming = state && typeof state === 'object' && !Array.isArray(state) ? state : {};
   const incomingHomepage = incoming.homepage && typeof incoming.homepage === 'object' && !Array.isArray(incoming.homepage) ? incoming.homepage : {};
-  return {
+  const normalized = {
     ...seed,
     ...incoming,
     homepage: {
@@ -204,6 +204,20 @@ function normalizeAdminState(state) {
       heroSlides: normalizeHeroSlides(incomingHomepage.heroSlides),
     },
   };
+  const arrayKeys = ['menuItems', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'financeTransactions', 'staff', 'attendance', 'leaveRequests', 'adminUsers', 'activity', 'notifications', 'social', 'seo'];
+  arrayKeys.forEach((key) => {
+    const value = incoming[key];
+    normalized[key] = Array.isArray(value)
+      ? value.filter((item) => item && typeof item === 'object' && !Array.isArray(item))
+      : seed[key];
+  });
+  ['user', 'settings'].forEach((key) => {
+    const value = incoming[key];
+    normalized[key] = value && typeof value === 'object' && !Array.isArray(value) ? value : seed[key];
+  });
+  const featuredItems = incomingHomepage.featuredItems;
+  normalized.homepage.featuredItems = Array.isArray(featuredItems) ? featuredItems.filter((item) => typeof item === 'string') : seed.homepage.featuredItems;
+  return normalized;
 }
 
 export function readAdminState() {
