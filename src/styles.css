@@ -94,9 +94,8 @@ p { line-height: 1.65; }
 .hero-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .65s ease, visibility .65s ease; }
 .hero-slide.is-active { opacity: 1; visibility: visible; }
 .hero-media picture, .hero-media picture img { display: block; width: 100%; height: 100%; }
-.hero-media img { object-fit: cover; animation: hero-zoom 16s ease-in-out infinite alternate; }
+.hero-media img { object-fit: cover; }
 .form-error { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; color: var(--maroon-dark); font-size: 13px; line-height: 1.4; }
-@keyframes hero-zoom { from { transform: scale(1.01); } to { transform: scale(1.06); } }
 .hero-inner { position: relative; z-index: 1; display: flex; align-items: center; min-height: 645px; }
 .hero-copy { max-width: 590px; padding: 68px 0 96px; }
 .hero-copy h1 { margin-bottom: 20px; font-size: clamp(48px, 6.4vw, 86px); line-height: .98; }
@@ -946,4 +945,25 @@ body { overflow-x: hidden; background: var(--white); }
   .cart-item { grid-template-columns: 56px minmax(0, 1fr) auto; gap: 10px; }
   .cart-item img { width: 56px; height: 56px; }
   .cart-item-total { font-size: 11px; }
+}
+
+/* Shared motion system */
+.site-header { transition: background-color .28s ease, border-color .28s ease, box-shadow .28s ease; }
+.site-header.is-scrolled { border-bottom-color: rgba(220, 230, 223, .98); background: rgba(255, 255, 255, .97); box-shadow: 0 10px 30px rgba(18, 56, 43, .08); }
+.site-header-home.is-scrolled { border-bottom-color: rgba(184, 215, 130, .28); background: rgba(8, 43, 32, .94); }
+.motion-image-reveal { will-change: clip-path, opacity; }
+.motion-image-reveal img { display: block; }
+.page-transition { min-height: 1px; will-change: opacity, transform; }
+.mobile-nav { transform: none; transition: none; will-change: transform, opacity; }
+.dish-card, .category-card, .branch-card, .promotion-card, .promotion-feature, .value-card, .gallery-tile, .social-link, .quick-info-item { will-change: transform, opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+  .hero-media, .motion-image-reveal, .page-transition, .mobile-nav { will-change: auto; }
+  .mobile-nav { transition: none; transform: none; }
 }
