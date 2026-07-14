@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, LazyMotion, domAnimation, m as motion, useReducedMotion } from 'framer-motion';
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
 import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, socialLinks } from './data/content';
 import AdminApp from './admin/AdminApp';
 import { submitEnquiry, submitReservation } from './lib/supabase';
@@ -78,7 +78,9 @@ function navigateTo(href) {
 }
 
 function formatPrice(price) {
-  return price == null ? 'Ask in branch' : `RM ${price.toFixed(2).replace('.00', '')}`;
+  if (price == null || price === '') return 'Ask in branch';
+  const numeric = Number(price);
+  return Number.isFinite(numeric) ? `RM ${numeric.toFixed(2).replace('.00', '')}` : 'Ask in branch';
 }
 
 function toMinutes(time) {
@@ -146,6 +148,63 @@ function Button({ children, href, variant = 'primary', icon: Icon, onClick, type
   return <motion.button {...motionProps} className={classes} type={type} onClick={onClick}>{content}</motion.button>;
 }
 
+const CartContext = createContext(null);
+
+function CartProvider({ children }) {
+  const [items, setItems] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('naseeb-cart-v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => { window.localStorage.setItem('naseeb-cart-v1', JSON.stringify(items)); }, [items]);
+  const addItem = useCallback((item, quantity = 1) => {
+    setItems((current) => {
+      const existing = current.find((entry) => entry.id === item.id);
+      if (existing) return current.map((entry) => entry.id === item.id ? { ...entry, quantity: entry.quantity + quantity } : entry);
+      return [...current, { ...item, quantity }];
+    });
+    setIsOpen(true);
+  }, []);
+  const updateQuantity = useCallback((id, quantity) => {
+    setItems((current) => quantity <= 0 ? current.filter((item) => item.id !== id) : current.map((item) => item.id === id ? { ...item, quantity } : item));
+  }, []);
+  const clearCart = useCallback(() => setItems([]), []);
+  const itemCount = useMemo(() => items.reduce((total, item) => total + item.quantity, 0), [items]);
+  const subtotal = useMemo(() => items.reduce((total, item) => total + (Number(item.price) || 0) * item.quantity, 0), [items]);
+  const orderText = useMemo(() => {
+    if (!items.length) return 'Hi Naseeb Chapati, I would like to place an order.';
+    const lines = items.map((item) => `- ${item.name} x${item.quantity} (${formatPrice(item.price)})`);
+    return `Hi Naseeb Chapati, I would like to place an order:\n${lines.join('\n')}\nEstimated total: ${formatPrice(subtotal)}`;
+  }, [items, subtotal]);
+  const value = useMemo(() => ({ items, itemCount, subtotal, orderText, isOpen, addItem, updateQuantity, clearCart, openCart: () => setIsOpen(true), closeCart: () => setIsOpen(false), toggleCart: () => setIsOpen((open) => !open) }), [items, itemCount, subtotal, orderText, isOpen, addItem, updateQuantity, clearCart]);
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+
+function useCart() {
+  return useContext(CartContext);
+}
+
+function CartAddButton({ item, label = 'Add' }) {
+  const { addItem } = useCart();
+  return <Button variant="small" icon={ShoppingCart} onClick={() => addItem(item)}>{label}</Button>;
+}
+
+function CartDrawer() {
+  const { items, itemCount, subtotal, orderText, isOpen, updateQuantity, clearCart, closeCart } = useCart();
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKeyDown = (event) => { if (event.key === 'Escape') closeCart(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, closeCart]);
+  const orderUrl = `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent(orderText)}`;
+  return <AnimatePresence>{isOpen && <><motion.div className="cart-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => event.target === event.currentTarget && closeCart()} /><motion.aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Your order" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 330, damping: 32 }}><div className="cart-drawer-header"><div><span className="eyebrow">Your order</span><h2>Cart <span>({itemCount})</span></h2></div><button className="icon-button" onClick={closeCart} aria-label="Close cart"><X size={20} /></button></div>{items.length ? <><div className="cart-items">{items.map((item) => <div className="cart-item" key={item.id}><img src={item.image} alt="" /><div className="cart-item-copy"><strong>{item.name}</strong><span>{formatPrice(item.price)}</span><div className="cart-quantity"><button onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={`Decrease ${item.name}`}>−</button><span>{item.quantity}</span><button onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={`Increase ${item.name}`}>+</button></div></div><strong className="cart-item-total">{formatPrice((Number(item.price) || 0) * item.quantity)}</strong></div>)}</div><div className="cart-summary"><div><span>Estimated total</span><strong>{formatPrice(subtotal)}</strong></div><a className="button button-accent cart-order-button" href={orderUrl} target="_blank" rel="noreferrer"><MessageCircle size={17} />Order on WhatsApp</a><button className="cart-clear" onClick={clearCart}>Clear cart</button><p>Final availability and total will be confirmed by the restaurant team.</p></div></> : <div className="cart-empty"><ShoppingCart size={34} /><h3>Your cart is empty</h3><p>Add dishes from the menu and they’ll appear here for one easy order.</p><Button href="/menu" variant="primary" icon={BookOpen}>Browse menu</Button></div>}</motion.aside></>}</AnimatePresence>;
+}
+
 function SectionHeading({ title, copy, action, align = 'left' }) {
   const reduceMotion = useReducedMotion();
   return <motion.div className={`section-heading align-${align}`} initial={reduceMotion ? false : { opacity: 0, y: 16 }} whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: .25 }} transition={{ duration: .5, ease: [.22, 1, .36, 1] }}>
@@ -157,17 +216,18 @@ function SectionHeading({ title, copy, action, align = 'left' }) {
 function Header() {
   const [open, setOpen] = useState(false);
   const isHome = getPath() === '/';
+  const { itemCount, toggleCart } = useCart();
   useEffect(() => { document.body.classList.toggle('nav-open', open); return () => document.body.classList.remove('nav-open'); }, [open]);
   const close = () => setOpen(false);
   return <>
     <header className={`site-header ${isHome ? 'site-header-home' : ''}`}>
       <div className="container header-inner">
         <Logo />
-        <nav className="desktop-nav" aria-label="Primary navigation">{navItems.map((item) => <a key={item.href} className={getPath() === item.href ? 'active' : ''} href={item.href} onClick={(event) => { event.preventDefault(); navigateTo(item.href); }}>{item.label}</a>)}</nav>
-        <div className="header-actions"><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button><button className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((value) => !value)}>{open ? <X size={22} /> : <MenuIcon size={22} />}</button></div>
+        <nav className="desktop-nav" aria-label="Primary navigation">{navItems.map((item) => <a key={item.href} className={getPath() === item.href ? 'active' : ''} href={item.href} onClick={(event) => { event.preventDefault(); navigateTo(item.href); }}>{item.href === '/menu' && <BookOpen size={15} />}<span>{item.label}</span></a>)}</nav>
+        <div className="header-actions"><button className="cart-trigger" type="button" onClick={toggleCart} aria-label={`Open cart${itemCount ? `, ${itemCount} item${itemCount === 1 ? '' : 's'}` : ''}`}><ShoppingCart size={19} /><span className="cart-trigger-label">Cart</span>{itemCount > 0 && <span className="cart-count">{itemCount}</span>}</button><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button><button className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((value) => !value)}>{open ? <X size={22} /> : <MenuIcon size={22} />}</button></div>
       </div>
     </header>
-    <div className={`mobile-nav ${open ? 'is-open' : ''}`} aria-hidden={!open}><div className="mobile-nav-top"><Logo /><button className="icon-button" aria-label="Close menu" onClick={close}><X size={21} /></button></div><nav>{navItems.map((item) => <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); close(); navigateTo(item.href); }}>{item.label}<ArrowUpRight size={15} /></a>)}</nav><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button></div>
+    <div className={`mobile-nav ${open ? 'is-open' : ''}`} aria-hidden={!open}><div className="mobile-nav-top"><Logo /><button className="icon-button" aria-label="Close menu" onClick={close}><X size={21} /></button></div><nav>{navItems.map((item) => <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); close(); navigateTo(item.href); }}>{item.href === '/menu' && <BookOpen size={20} />}<span>{item.label}</span><ArrowUpRight size={15} /></a>)}</nav><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button></div>
   </>;
 }
 
@@ -187,7 +247,7 @@ function AppShell({ children }) {
   const path = getPath();
   const reduceMotion = useReducedMotion();
   useEffect(() => { setPageMeta(path); }, [path]);
-  return <LazyMotion features={domAnimation}><Header /><main id="main-content"><AnimatePresence mode="wait" initial={false}><motion.div key={path} className="page-transition" initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? undefined : { opacity: 0, y: -6 }} transition={{ duration: reduceMotion ? 0 : .35, ease: [.22, 1, .36, 1] }}>{children}</motion.div></AnimatePresence></main><FloatingWhatsApp /><MobileActionBar /><Footer /></LazyMotion>;
+  return <LazyMotion features={domAnimation}><CartProvider><Header /><CartDrawer /><main id="main-content"><AnimatePresence mode="wait" initial={false}><motion.div key={path} className="page-transition" initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? undefined : { opacity: 0, y: -6 }} transition={{ duration: reduceMotion ? 0 : .35, ease: [.22, 1, .36, 1] }}>{children}</motion.div></AnimatePresence></main><FloatingWhatsApp /><MobileActionBar /><Footer /></CartProvider></LazyMotion>;
 }
 
 function Hero() {
@@ -240,7 +300,7 @@ function AboutBand() {
 
 function DishCard({ item, onDetails, index = 0 }) {
   const reduceMotion = useReducedMotion();
-  return <motion.article className="dish-card" layout initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }} exit={reduceMotion ? undefined : { opacity: 0, y: 10 }} viewport={{ once: true, amount: .18 }} transition={{ duration: .45, delay: Math.min(index * .05, .2), ease: [.22, 1, .36, 1] }} whileHover={reduceMotion ? undefined : { y: -6 }} whileTap={reduceMotion ? undefined : { scale: .99 }}><div className="dish-card-image"><SafeImage src={item.image} alt={item.name} loading="lazy" /><span className="food-badge">{item.badge}</span></div><div className="dish-card-content"><span className="food-category">{item.category}</span><h3>{item.name}</h3><p>{item.description}</p><div className="dish-card-footer"><strong>{formatPrice(item.price)}</strong><div><button className="link-button" onClick={() => onDetails?.(item)}>Details <ArrowUpRight size={14} /></button><Button href="https://www.foodpanda.my/chain/cx8vw/naseeb-capati-nan" variant="small" icon={ShoppingBag}>Order</Button></div></div></div></motion.article>;
+  return <motion.article className="dish-card" layout initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }} exit={reduceMotion ? undefined : { opacity: 0, y: 10 }} viewport={{ once: true, amount: .18 }} transition={{ duration: .45, delay: Math.min(index * .05, .2), ease: [.22, 1, .36, 1] }} whileHover={reduceMotion ? undefined : { y: -6 }} whileTap={reduceMotion ? undefined : { scale: .99 }}><div className="dish-card-image"><SafeImage src={item.image} alt={item.name} loading="lazy" /><span className="food-badge">{item.badge}</span></div><div className="dish-card-content"><span className="food-category">{item.category}</span><h3>{item.name}</h3><p>{item.description}</p><div className="dish-card-footer"><strong>{formatPrice(item.price)}</strong><div><button className="link-button" onClick={() => onDetails?.(item)}>Details <ArrowUpRight size={14} /></button><CartAddButton item={item} /></div></div></div></motion.article>;
 }
 
 function BestSellers() {
