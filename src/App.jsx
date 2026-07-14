@@ -156,10 +156,11 @@ function SectionHeading({ title, copy, action, align = 'left' }) {
 
 function Header() {
   const [open, setOpen] = useState(false);
+  const isHome = getPath() === '/';
   useEffect(() => { document.body.classList.toggle('nav-open', open); return () => document.body.classList.remove('nav-open'); }, [open]);
   const close = () => setOpen(false);
   return <>
-    <header className="site-header">
+    <header className={`site-header ${isHome ? 'site-header-home' : ''}`}>
       <div className="container header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label="Primary navigation">{navItems.map((item) => <a key={item.href} className={getPath() === item.href ? 'active' : ''} href={item.href} onClick={(event) => { event.preventDefault(); navigateTo(item.href); }}>{item.label}</a>)}</nav>
@@ -304,7 +305,7 @@ function SocialSection() {
 }
 
 function HomePage() {
-  return <><Hero /><QuickInfo /><FoodCoverflow /><CategoryGrid /><AboutBand /><BestSellers /><BranchSection /><PromotionsSection /><ReviewSection /><GalleryStrip /><ReservationSection /><SocialSection /></>;
+  return <div className="home-page"><Hero /><QuickInfo /><FoodCoverflow /><CategoryGrid /><AboutBand /><BestSellers /><BranchSection /><PromotionsSection /><ReviewSection /><GalleryStrip /><ReservationSection /><SocialSection /></div>;
 }
 
 function DishModal({ item, onClose }) {
