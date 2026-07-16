@@ -5,7 +5,7 @@ import {
 import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, socialLinks } from './data/content';
 import AdminApp from './admin/AdminApp';
 import { submitEnquiry, submitReservation } from './lib/supabase';
-import { MotionCard, MotionGroup, MotionImage, MotionPage, MotionReveal, buttonTransition, drawerTransition, headerVariants, itemVariants, staggerVariants } from './motion';
+import { MotionCard, MotionGroup, MotionImage, MotionPage, MotionReveal, buttonTransition, drawerTransition, headerVariants, itemVariants, motionSpring, staggerVariants } from './motion';
 
 const navItems = [
   { label: 'Home', href: '/' }, { label: 'Menu', href: '/menu' }, { label: 'About Us', href: '/about' }, { label: 'Branches', href: '/branches' }, { label: 'Gallery', href: '/gallery' }, { label: 'Promotions', href: '/promotions' }, { label: 'Contact', href: '/contact' },
@@ -140,11 +140,11 @@ function SafeImage({ src, fallback = imageUrls.naan, alt = '', ...props }) {
   return <img {...props} src={source} alt={alt} onError={() => setSource((current) => current === fallback ? current : fallback)} />;
 }
 
-function Button({ children, href, variant = 'primary', icon: Icon, onClick, type = 'button', className = '' }) {
+function Button({ children, href, variant = 'primary', icon: Icon, onClick, type = 'button', className = '', animationProps = {} }) {
   const reduceMotion = useReducedMotion();
   const classes = `button button-${variant} ${className}`;
   const content = <>{children}{Icon ? <Icon size={16} strokeWidth={2.2} /> : null}</>;
-  const motionProps = { whileHover: reduceMotion ? undefined : { y: -2 }, whileTap: reduceMotion ? undefined : { scale: .98 }, transition: buttonTransition };
+  const motionProps = { whileHover: reduceMotion ? undefined : { y: -2 }, whileTap: reduceMotion ? undefined : { scale: .98 }, transition: buttonTransition, ...animationProps };
   if (href?.startsWith('http')) return <motion.a {...motionProps} className={classes} href={href} target="_blank" rel="noreferrer">{content}</motion.a>;
   if (href) return <motion.a {...motionProps} className={classes} href={href} onClick={(event) => { event.preventDefault(); navigateTo(href); }}>{content}</motion.a>;
   return <motion.button {...motionProps} className={classes} type={type} onClick={onClick}>{content}</motion.button>;
@@ -259,6 +259,28 @@ function AppShell({ children }) {
   return <LazyMotion features={domAnimation}><CartProvider><Header /><CartDrawer /><main id="main-content"><AnimatePresence mode="wait" initial={false}><MotionPage key={path}>{children}</MotionPage></AnimatePresence></main><FloatingWhatsApp /><MobileActionBar /><Footer /></CartProvider></LazyMotion>;
 }
 
+const heroCopyVariants = {
+  hidden: { opacity: 1 },
+  show: { opacity: 1, transition: { delayChildren: .04, staggerChildren: .1 } },
+};
+
+const heroItemVariants = {
+  hidden: { opacity: 0, y: 18 },
+  show: { opacity: 1, y: 0, transition: motionSpring },
+};
+
+const heroActionsVariants = {
+  hidden: { opacity: 1 },
+  show: { opacity: 1, transition: { staggerChildren: .08 } },
+};
+
+const heroButtonVariants = {
+  hidden: { opacity: 0, y: 12, scale: .98 },
+  show: { opacity: 1, y: 0, scale: 1, transition: motionSpring },
+};
+
+const heroImageTransition = { type: 'spring', stiffness: 150, damping: 25, mass: .85 };
+
 function Hero() {
   const slides = (Array.isArray(heroSlides) ? heroSlides : []).filter((slide) => slide.active !== false && slide.desktopImage);
   const [active, setActive] = useState(0);
@@ -275,7 +297,29 @@ function Hero() {
   const onPointerDown = (event) => { if (event.target.closest?.('button, a')) return; pointerStart.current = event.clientX; setPaused(true); event.currentTarget.setPointerCapture?.(event.pointerId); };
   const onPointerUp = (event) => { if (pointerStart.current !== null) { const distance = event.clientX - pointerStart.current; if (Math.abs(distance) > 42) step(distance < 0 ? 1 : -1); } pointerStart.current = null; setPaused(false); };
   if (!current) return null;
-  return <section className="hero-section" aria-roledescription="carousel" aria-label="Naseeb Chapati highlights" tabIndex="0" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false); }} onKeyDown={(event) => { if (event.key === 'ArrowLeft') step(-1); if (event.key === 'ArrowRight') step(1); }} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { pointerStart.current = null; setPaused(false); }}><motion.div className="hero-media" initial={reduceMotion ? false : { opacity: 0, scale: .985 }} animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: .9, ease: [.22, 1, .36, 1] }}>{slides.map((slide, index) => <div className={`hero-slide ${index === active ? 'is-active' : ''}`} key={slide.id || index} aria-hidden={index !== active}><picture><source media="(max-width: 720px)" srcSet={slide.mobileImage || slide.desktopImage} /><SafeImage src={slide.desktopImage} fallback={imageUrls.hero} alt={slide.imageAlt || slide.heading} loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'auto'} /></picture></div>)}</motion.div><div className="container hero-inner"><motion.div className="hero-copy" key={current.id || current.heading} initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={staggerVariants}><motion.p className="eyebrow" variants={itemVariants}>Naseeb Chapati Restaurant</motion.p><motion.h1 variants={itemVariants}>{current.heading}</motion.h1><motion.p className="hero-description" variants={itemVariants}>{current.text}</motion.p><motion.div className="hero-actions" variants={itemVariants}><Button href={current.primaryButtonUrl || '/menu'} icon={BookOpen}>{current.primaryButtonLabel || 'View Menu'}</Button><Button href={current.secondaryButtonUrl || contactInfo.orderUrl} variant="accent" icon={ShoppingBag}>{current.secondaryButtonLabel || 'Order Now'}</Button><Button href="/branches" variant="outline" icon={MapPin}>Find Nearest Branch</Button></motion.div><motion.div className="hero-note" variants={itemVariants}><span className="hero-note-dot"><Check size={13} /></span><span>Halal food · Dine-in, takeaway and delivery</span></motion.div></motion.div><div className="hero-carousel-controls"><button className="hero-carousel-arrow" type="button" aria-label="Previous hero slide" onClick={() => step(-1)}><ChevronLeft size={19} /></button><div className="hero-carousel-dots" role="tablist" aria-label="Hero slides">{slides.map((slide, index) => <button type="button" key={slide.id || index} role="tab" aria-label={`Show slide ${index + 1}: ${slide.heading}`} aria-selected={index === active} className={index === active ? 'active' : ''} onClick={() => { setActive(index); setPaused(true); }} />)}</div><button className="hero-carousel-arrow" type="button" aria-label="Next hero slide" onClick={() => step(1)}><ChevronRight size={19} /></button></div></div></section>;
+  return <section className="hero-section" aria-roledescription="carousel" aria-label="Naseeb Chapati highlights" tabIndex="0" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false); }} onKeyDown={(event) => { if (event.key === 'ArrowLeft') step(-1); if (event.key === 'ArrowRight') step(1); }} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { pointerStart.current = null; setPaused(false); }}>
+    <motion.div className="hero-media" initial={reduceMotion ? false : { opacity: 0, scale: .99 }} animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }} transition={reduceMotion ? { duration: 0 } : heroImageTransition}>
+      <AnimatePresence initial={false} mode="sync">
+        <motion.div className="hero-slide is-active" key={current.id || current.heading} initial={reduceMotion ? false : { opacity: 0, scale: 1.025 }} animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }} exit={reduceMotion ? undefined : { opacity: 0, scale: .99 }} transition={reduceMotion ? { duration: 0 } : heroImageTransition}>
+          <picture><source media="(max-width: 720px)" srcSet={current.mobileImage || current.desktopImage} /><SafeImage src={current.desktopImage} fallback={imageUrls.hero} alt={current.imageAlt || current.heading} loading={active === 0 ? 'eager' : 'lazy'} fetchPriority={active === 0 ? 'high' : 'auto'} /></picture>
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
+    <div className="container hero-inner">
+      <motion.div className="hero-copy" key={current.id || current.heading} initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={heroCopyVariants}>
+        <motion.p className="eyebrow" variants={heroItemVariants}>Naseeb Chapati Restaurant</motion.p>
+        <motion.h1 variants={heroItemVariants}>{current.heading}</motion.h1>
+        <motion.p className="hero-description" variants={heroItemVariants}>{current.text}</motion.p>
+        <motion.div className="hero-actions" variants={heroActionsVariants}>
+          <Button animationProps={{ variants: heroButtonVariants }} href={current.primaryButtonUrl || '/menu'} icon={BookOpen}>{current.primaryButtonLabel || 'View Menu'}</Button>
+          <Button animationProps={{ variants: heroButtonVariants }} href={current.secondaryButtonUrl || contactInfo.orderUrl} variant="accent" icon={ShoppingBag}>{current.secondaryButtonLabel || 'Order Now'}</Button>
+          <Button animationProps={{ variants: heroButtonVariants }} href="/branches" variant="outline" icon={MapPin}>Find Nearest Branch</Button>
+        </motion.div>
+        <motion.div className="hero-note" variants={heroItemVariants}><span className="hero-note-dot"><Check size={13} /></span><span>Halal food · Dine-in, takeaway and delivery</span></motion.div>
+      </motion.div>
+      <div className="hero-carousel-controls"><button className="hero-carousel-arrow" type="button" aria-label="Previous hero slide" onClick={() => step(-1)}><ChevronLeft size={19} /></button><div className="hero-carousel-dots" role="tablist" aria-label="Hero slides">{slides.map((slide, index) => <button type="button" key={slide.id || index} role="tab" aria-label={`Show slide ${index + 1}: ${slide.heading}`} aria-selected={index === active} className={index === active ? 'active' : ''} onClick={() => { setActive(index); setPaused(true); }} />)}</div><button className="hero-carousel-arrow" type="button" aria-label="Next hero slide" onClick={() => step(1)}><ChevronRight size={19} /></button></div>
+    </div>
+  </section>;
 }
 
 function QuickInfo() {

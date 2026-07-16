@@ -760,7 +760,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--maroon); box-sha
 .home-page .hero-actions .button-outline:hover { border-color: var(--home-accent); background: rgba(184, 215, 130, .15); color: var(--white); }
 .home-page .hero-note { color: rgba(255, 255, 255, .78); }
 .home-page .hero-note-dot { background: var(--home-accent); color: var(--maroon-dark); }
-.home-page .hero-carousel-controls { right: 0; bottom: 48px; }
+.home-page .hero-carousel-controls { right: 50%; bottom: 48px; transform: translateX(50%); }
+.home-page .hero-carousel-arrow { display: none; }
 .home-page .hero-carousel-arrow { border-color: rgba(184, 215, 130, .42); background: rgba(8, 43, 32, .68); color: var(--white); }
 .home-page .hero-carousel-arrow:hover { background: var(--home-accent); color: var(--maroon-dark); }
 .home-page .hero-carousel-dots button { background: rgba(255, 255, 255, .38); }
@@ -804,10 +805,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--maroon); box-sha
   .home-page .hero-copy .eyebrow { margin-bottom: 14px; font-size: 10px; }
   .home-page .hero-copy h1 { margin-bottom: 16px; font-size: clamp(39px, 12vw, 56px); }
   .home-page .hero-description { margin-bottom: 20px; font-size: 13px; line-height: 1.55; }
-  .home-page .hero-actions { gap: 8px; }
+  .home-page .hero-actions { gap: 8px; margin-top: clamp(150px, 52vw, 200px); }
   .home-page .hero-actions .button { min-height: 42px; padding-inline: 12px; font-size: 11px; }
   .home-page .hero-actions .button-outline { flex-basis: 100%; width: fit-content; }
   .home-page .hero-note { margin-top: 17px; font-size: 10px; }
+  .home-page .hero-carousel-controls { right: 50%; bottom: 16px; transform: translateX(50%); }
   .home-page .quick-info { margin-top: -17px; }
   .home-page .quick-info-inner { padding: 8px; }
   .home-page .quick-info-item { min-height: 45px; padding-inline: 8px; font-size: 9px; }
