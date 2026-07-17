@@ -432,3 +432,72 @@ create policy "Authenticated admins can delete team members"
 on public.team_members for delete
 to authenticated
 using (auth.uid() is not null);
+
+-- Public event and catering enquiries. Service content itself is stored in the
+-- versioned CMS payload so the existing website publishing workflow stays atomic.
+create table if not exists public.naseeb_event_enquiries (
+  id uuid primary key default gen_random_uuid(),
+  reference text not null unique check (reference ~ '^NC-EVT-[A-Z0-9-]+$'),
+  name text not null check (char_length(trim(name)) between 2 and 160),
+  phone text not null check (char_length(trim(phone)) between 7 and 40),
+  whatsapp text,
+  email text,
+  event_type text not null,
+  service_type text not null,
+  branch text not null,
+  event_date date not null,
+  start_time time not null,
+  guests integer not null check (guests between 1 and 5000),
+  event_space_required boolean not null default false,
+  catering_required boolean not null default false,
+  delivery_location text,
+  preferred_package text,
+  estimated_budget text,
+  decoration_required boolean not null default false,
+  special_requests text,
+  preferred_contact_method text not null default 'WhatsApp' check (preferred_contact_method in ('WhatsApp', 'Phone', 'Email')),
+  consent boolean not null default false,
+  status text not null default 'New' check (status in ('New', 'Contacted', 'Quotation Sent', 'Follow-Up Required', 'Tentative', 'Confirmed', 'Completed', 'Cancelled', 'Lost')),
+  assigned_staff text,
+  internal_notes text,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  archived_at timestamptz
+);
+
+drop trigger if exists naseeb_event_enquiries_updated_at on public.naseeb_event_enquiries;
+create trigger naseeb_event_enquiries_updated_at
+before update on public.naseeb_event_enquiries
+for each row execute function public.naseeb_set_updated_at();
+
+create index if not exists naseeb_event_enquiries_status_created_idx
+on public.naseeb_event_enquiries (status, created_at desc)
+where archived_at is null;
+
+create index if not exists naseeb_event_enquiries_branch_date_idx
+on public.naseeb_event_enquiries (branch, event_date)
+where archived_at is null;
+
+create index if not exists naseeb_event_enquiries_type_idx
+on public.naseeb_event_enquiries (event_type, service_type);
+
+alter table public.naseeb_event_enquiries enable row level security;
+
+drop policy if exists "Visitors can submit event enquiries" on public.naseeb_event_enquiries;
+create policy "Visitors can submit event enquiries"
+on public.naseeb_event_enquiries for insert
+to anon, authenticated
+with check (consent = true and status = 'New' and archived_at is null);
+
+drop policy if exists "Authenticated admins can read event enquiries" on public.naseeb_event_enquiries;
+create policy "Authenticated admins can read event enquiries"
+on public.naseeb_event_enquiries for select
+to authenticated
+using (auth.uid() is not null);
+
+drop policy if exists "Authenticated admins can update event enquiries" on public.naseeb_event_enquiries;
+create policy "Authenticated admins can update event enquiries"
+on public.naseeb_event_enquiries for update
+to authenticated
+using (auth.uid() is not null)
+with check (auth.uid() is not null);

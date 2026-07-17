@@ -10,12 +10,13 @@ import {
   socialLinks as publicSocial,
 } from '../data/content';
 import { CONTENT_ROW_ID, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { createDefaultServicesContent, normalizeServicesContent } from '../services/servicesSeed';
 
 const STORAGE_KEY = 'naseeb-admin-state-v1';
 const SESSION_KEY = 'naseeb-admin-session-v1';
 const OPERATIONS_ROW_ID = 'default';
-const publicStateKeys = ['menuItems', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'social', 'homepage', 'seo', 'settings'];
-const operationsStateKeys = ['reservations', 'enquiries', 'financeTransactions', 'staff', 'attendance', 'leaveRequests', 'adminUsers', 'activity', 'notifications'];
+const publicStateKeys = ['menuItems', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'social', 'homepage', 'servicesContent', 'seo', 'settings'];
+const operationsStateKeys = ['reservations', 'enquiries', 'eventEnquiries', 'financeTransactions', 'staff', 'attendance', 'leaveRequests', 'adminUsers', 'activity', 'notifications'];
 
 export const roleCatalog = [
   { key: 'super_admin', label: 'Super Admin', description: 'Full access to every website, branch, content, and security setting.' },
@@ -101,6 +102,7 @@ const makeSeedState = () => ({
     { id: 'ENQ-2200', name: 'Liyana S.', email: 'liyana@example.com', phone: '+60 17-540 9008', branch: 'Ayer Hitam', subject: 'Opening hours', message: 'Are you open on the public holiday?', status: 'In Progress', date: 'May 17, 2026', assigned: 'Admin User', notes: 'Check special hours.' },
     { id: 'ENQ-2199', name: 'Jason Tan', email: 'jason@example.com', phone: '+60 18-345 2211', branch: 'All branches', subject: 'Delivery coverage', message: 'Which branch delivers to Taman Rinting?', status: 'Resolved', date: 'May 16, 2026', assigned: 'Branch team', notes: '' },
   ],
+  eventEnquiries: [],
   financeTransactions: [
     { id: 'a1111111-1111-4111-8111-111111111111', description: 'Daily counter and dine-in sales', type: 'Income', category: 'Food sales', amount: 4680, transactionDate: '2026-07-12', branch: 'Pasir Gudang', paymentMethod: 'Cash', reference: 'POS-PG-0712', status: 'Posted', notes: 'Sample finance record.' },
     { id: 'a2222222-2222-4222-8222-222222222222', description: 'Online delivery settlement', type: 'Income', category: 'Delivery sales', amount: 2310, transactionDate: '2026-07-11', branch: 'Ayer Hitam', paymentMethod: 'Online', reference: 'DEL-AH-0711', status: 'Posted', notes: 'Sample finance record.' },
@@ -164,9 +166,11 @@ const makeSeedState = () => ({
     showPromotions: true,
     showReviews: true,
   },
+  servicesContent: createDefaultServicesContent(),
   seo: [
     { page: 'Homepage', path: '/', title: 'Naseeb Chapati Restaurant | Authentic Flavours, Freshly Served', description: 'Authentic Pakistani favourites, fresh chapati, naan, biryani, grills, and family meals across Johor.', status: 'Published' },
     { page: 'Menu', path: '/menu', title: 'Full Menu | Naseeb Chapati Restaurant', description: 'Search the Naseeb Chapati menu by dish, category, spice level, vegetarian options, and branch availability.', status: 'Published' },
+    { page: 'Services', path: '/services', title: 'Events & Catering Services | Naseeb Chapati Restaurant', description: 'Plan private events, family celebrations, corporate meetings and catering with Naseeb Chapati Restaurant in Johor.', status: 'Published' },
     { page: 'Branches', path: '/branches', title: 'Branches | Naseeb Chapati Restaurant', description: 'Find Naseeb Chapati branches, hours, contact details, and directions.', status: 'Published' },
     { page: 'About Us', path: '/about', title: 'About Us | Naseeb Chapati Restaurant', description: 'Discover the warm, family-first story behind Naseeb Chapati Restaurant.', status: 'Published' },
   ],
@@ -203,8 +207,9 @@ function normalizeAdminState(state) {
       ...incomingHomepage,
       heroSlides: normalizeHeroSlides(incomingHomepage.heroSlides),
     },
+    servicesContent: normalizeServicesContent(incoming.servicesContent),
   };
-  const arrayKeys = ['menuItems', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'financeTransactions', 'staff', 'attendance', 'leaveRequests', 'adminUsers', 'activity', 'notifications', 'social', 'seo'];
+  const arrayKeys = ['menuItems', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'eventEnquiries', 'financeTransactions', 'staff', 'attendance', 'leaveRequests', 'adminUsers', 'activity', 'notifications', 'social', 'seo'];
   arrayKeys.forEach((key) => {
     const value = incoming[key];
     normalized[key] = Array.isArray(value)
@@ -367,6 +372,68 @@ function toEnquiryRow(row) {
   };
 }
 
+function fromEventEnquiryRow(row) {
+  return {
+    id: row.id,
+    reference: row.reference,
+    name: row.name,
+    phone: row.phone,
+    whatsapp: row.whatsapp || '',
+    email: row.email || '',
+    eventType: row.event_type,
+    serviceType: row.service_type,
+    branch: row.branch,
+    eventDate: row.event_date,
+    startTime: String(row.start_time || '').slice(0, 5),
+    guests: Number(row.guests || 1),
+    eventSpaceRequired: Boolean(row.event_space_required),
+    cateringRequired: Boolean(row.catering_required),
+    deliveryLocation: row.delivery_location || '',
+    preferredPackage: row.preferred_package || '',
+    estimatedBudget: row.estimated_budget || '',
+    decorationRequired: Boolean(row.decoration_required),
+    specialRequests: row.special_requests || '',
+    preferredContactMethod: row.preferred_contact_method || 'WhatsApp',
+    consent: Boolean(row.consent),
+    status: row.status || 'New',
+    assigned: row.assigned_staff || 'Unassigned',
+    notes: row.internal_notes || '',
+    createdAt: row.created_at,
+    archivedAt: row.archived_at || null,
+  };
+}
+
+function toEventEnquiryRow(row) {
+  if (!UUID_PATTERN.test(row.id || '') || !row.reference) return null;
+  return {
+    id: row.id,
+    reference: row.reference,
+    name: row.name,
+    phone: row.phone,
+    whatsapp: row.whatsapp || null,
+    email: row.email || null,
+    event_type: row.eventType,
+    service_type: row.serviceType,
+    branch: row.branch,
+    event_date: row.eventDate,
+    start_time: row.startTime,
+    guests: Number(row.guests || 1),
+    event_space_required: Boolean(row.eventSpaceRequired),
+    catering_required: Boolean(row.cateringRequired),
+    delivery_location: row.deliveryLocation || null,
+    preferred_package: row.preferredPackage || null,
+    estimated_budget: row.estimatedBudget || null,
+    decoration_required: Boolean(row.decorationRequired),
+    special_requests: row.specialRequests || null,
+    preferred_contact_method: row.preferredContactMethod || 'WhatsApp',
+    consent: Boolean(row.consent),
+    status: row.status || 'New',
+    assigned_staff: row.assigned || null,
+    internal_notes: row.notes || null,
+    archived_at: row.archivedAt || null,
+  };
+}
+
 function mergeAdminState(payload = {}) {
   return normalizeAdminState(payload);
 }
@@ -375,11 +442,12 @@ export async function loadAdminState() {
   const localState = readAdminState();
   if (!isSupabaseConfigured || !supabase) return { state: localState, source: 'local', error: null };
 
-  const [contentResult, operationsResult, reservationsResult, enquiriesResult, financeResult, staffResult, attendanceResult, leaveResult] = await Promise.all([
+  const [contentResult, operationsResult, reservationsResult, enquiriesResult, eventEnquiriesResult, financeResult, staffResult, attendanceResult, leaveResult] = await Promise.all([
     supabase.from('naseeb_content_state').select('payload').eq('id', CONTENT_ROW_ID).maybeSingle(),
     supabase.from('naseeb_operations_state').select('payload').eq('id', OPERATIONS_ROW_ID).maybeSingle(),
     supabase.from('naseeb_reservations').select('*').order('created_at', { ascending: false }).limit(100),
     supabase.from('naseeb_enquiries').select('*').order('created_at', { ascending: false }).limit(100),
+    supabase.from('naseeb_event_enquiries').select('*').order('created_at', { ascending: false }).limit(500),
     supabase.from('naseeb_finance_transactions').select('*').order('transaction_date', { ascending: false }).limit(500),
     supabase.from('naseeb_staff').select('*').order('full_name', { ascending: true }).limit(500),
     supabase.from('naseeb_attendance').select('*').order('attendance_date', { ascending: false }).limit(500),
@@ -391,6 +459,7 @@ export async function loadAdminState() {
   const remotePayload = { ...(contentResult.data?.payload || {}), ...(operationsResult.data?.payload || {}) };
   if (!reservationsResult.error && reservationsResult.data?.length) remotePayload.reservations = reservationsResult.data.map(fromReservationRow);
   if (!enquiriesResult.error && enquiriesResult.data?.length) remotePayload.enquiries = enquiriesResult.data.map(fromEnquiryRow);
+  if (!eventEnquiriesResult.error && eventEnquiriesResult.data) remotePayload.eventEnquiries = eventEnquiriesResult.data.map(fromEventEnquiryRow);
   if (!financeResult.error && financeResult.data) remotePayload.financeTransactions = financeResult.data.map(fromFinanceRow);
   if (!staffResult.error && staffResult.data) remotePayload.staff = staffResult.data.map(fromStaffRow);
   if (!attendanceResult.error && attendanceResult.data) remotePayload.attendance = attendanceResult.data.map(fromAttendanceRow);
@@ -408,15 +477,17 @@ export async function persistAdminState(state) {
 
   const reservationRows = (normalized.reservations || []).map(toReservationRow).filter(Boolean);
   const enquiryRows = (normalized.enquiries || []).map(toEnquiryRow).filter(Boolean);
+  const eventEnquiryRows = (normalized.eventEnquiries || []).map(toEventEnquiryRow).filter(Boolean);
   const financeRows = (normalized.financeTransactions || []).map(toFinanceRow).filter(Boolean);
   const staffRows = (normalized.staff || []).map(toStaffRow).filter(Boolean);
   const attendanceRows = (normalized.attendance || []).map(toAttendanceRow).filter(Boolean);
   const leaveRows = (normalized.leaveRequests || []).map(toLeaveRow).filter(Boolean);
-  const [contentResult, operationsResult, reservationsResult, enquiriesResult, financeResult, staffResult] = await Promise.all([
+  const [contentResult, operationsResult, reservationsResult, enquiriesResult, eventEnquiriesResult, financeResult, staffResult] = await Promise.all([
     supabase.from('naseeb_content_state').upsert({ id: CONTENT_ROW_ID, payload: pickState(normalized, publicStateKeys) }),
     supabase.from('naseeb_operations_state').upsert({ id: OPERATIONS_ROW_ID, payload: pickState(normalized, operationsStateKeys) }),
     reservationRows.length ? supabase.from('naseeb_reservations').upsert(reservationRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
     enquiryRows.length ? supabase.from('naseeb_enquiries').upsert(enquiryRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
+    eventEnquiryRows.length ? supabase.from('naseeb_event_enquiries').upsert(eventEnquiryRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
     financeRows.length ? supabase.from('naseeb_finance_transactions').upsert(financeRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
     staffRows.length ? supabase.from('naseeb_staff').upsert(staffRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
   ]);
@@ -424,7 +495,7 @@ export async function persistAdminState(state) {
     attendanceRows.length ? supabase.from('naseeb_attendance').upsert(attendanceRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
     leaveRows.length ? supabase.from('naseeb_leave_requests').upsert(leaveRows, { onConflict: 'id' }) : Promise.resolve({ error: null }),
   ]);
-  const error = contentResult.error || operationsResult.error || reservationsResult.error || enquiriesResult.error || financeResult.error || staffResult.error || attendanceResult.error || leaveResult.error;
+  const error = contentResult.error || operationsResult.error || reservationsResult.error || enquiriesResult.error || eventEnquiriesResult.error || financeResult.error || staffResult.error || attendanceResult.error || leaveResult.error;
   return { ok: !error, source: error ? 'local' : 'supabase', error };
 }
 

@@ -75,6 +75,44 @@ export async function submitEnquiry(payload) {
   return { data, error, source: 'supabase' };
 }
 
+export function createEventEnquiryReference() {
+  const date = new Date();
+  const stamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+  const random = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `NC-EVT-${stamp}-${random}`;
+}
+
+export async function submitEventEnquiry(payload) {
+  const reference = payload.reference || createEventEnquiryReference();
+  if (!supabase) return { data: { reference }, error: null, source: 'local-preview' };
+  const { error } = await supabase
+    .from('naseeb_event_enquiries')
+    .insert({
+      reference,
+      name: String(payload.name || '').trim(),
+      phone: String(payload.phone || '').trim(),
+      whatsapp: String(payload.whatsapp || '').trim() || null,
+      email: String(payload.email || '').trim() || null,
+      event_type: payload.eventType,
+      service_type: payload.serviceType,
+      branch: payload.branch,
+      event_date: payload.eventDate,
+      start_time: payload.startTime,
+      guests: Number(payload.guests),
+      event_space_required: Boolean(payload.eventSpaceRequired),
+      catering_required: Boolean(payload.cateringRequired),
+      delivery_location: String(payload.deliveryLocation || '').trim() || null,
+      preferred_package: payload.preferredPackage || null,
+      estimated_budget: String(payload.estimatedBudget || '').trim() || null,
+      decoration_required: Boolean(payload.decorationRequired),
+      special_requests: String(payload.specialRequests || '').trim() || null,
+      preferred_contact_method: payload.preferredContactMethod || 'WhatsApp',
+      consent: Boolean(payload.consent),
+      status: 'New',
+    });
+  return { data: { reference }, error, source: 'supabase' };
+}
+
 export async function loadPublicContentCache() {
   if (!supabase) return { ok: false, source: 'local', error: null };
 

@@ -1,0 +1,13 @@
+.ui-accordion-item { border-bottom: 1px solid rgba(31, 77, 58, .16); }
+.ui-accordion-header { margin: 0; }
+.ui-accordion-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 0; border: 0; background: transparent; color: #111; font: 700 1rem/1.45 Montserrat, sans-serif; text-align: left; cursor: pointer; }
+.ui-accordion-trigger svg { flex: 0 0 auto; width: 18px; height: 18px; color: #1f4d3a; transition: transform .26s ease; }
+.ui-accordion-trigger[data-state='open'] svg { transform: rotate(180deg); }
+.ui-accordion-trigger:focus-visible { outline: 3px solid rgba(31, 77, 58, .26); outline-offset: 4px; border-radius: 6px; }
+.ui-accordion-content { overflow: hidden; color: #4c5752; font: 500 .94rem/1.75 Montserrat, sans-serif; }
+.ui-accordion-content[data-state='open'] { animation: accordion-open .25s cubic-bezier(.22, 1, .36, 1); }
+.ui-accordion-content[data-state='closed'] { animation: accordion-close .2s ease; }
+.ui-accordion-content-inner { padding: 0 42px 22px 0; }
+@keyframes accordion-open { from { height: 0; } to { height: var(--radix-accordion-content-height); } }
+@keyframes accordion-close { from { height: var(--radix-accordion-content-height); } to { height: 0; } }
+@media (prefers-reduced-motion: reduce) { .ui-accordion-content[data-state], .ui-accordion-trigger svg { animation: none; transition: none; } }

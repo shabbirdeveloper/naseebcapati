@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Activity, ArrowUpRight, BarChart3, Bell, CalendarCheck, CalendarDays, Check, CheckCircle2, CheckSquare, ChevronDown, ChevronRight, CircleAlert, Clock3, Command, Copy, Database, Download, DollarSign, Edit3, ExternalLink, Eye, FileText, Globe2, ImagePlus, Images, Inbox, LayoutDashboard, ListFilter, LockKeyhole, LogOut, MapPin, Menu as MenuIcon, MoreHorizontal, PanelsTopLeft, Plus, RefreshCw, Save, Search, Settings, Share2, ShieldAlert, ShieldCheck, SlidersHorizontal, Star, TableProperties, Tags, TicketPercent, Trash2, TrendingUp, Upload, UserCheck, UserRound, Users, Utensils, Wallet, X,
+  Activity, ArrowUpRight, BarChart3, Bell, CalendarCheck, CalendarDays, Check, CheckCircle2, CheckSquare, ChevronDown, ChevronRight, CircleAlert, Clock3, Command, Copy, Database, Download, DollarSign, Edit3, ExternalLink, Eye, FileText, Globe2, ImagePlus, Images, Inbox, LayoutDashboard, ListFilter, LockKeyhole, LogOut, MapPin, Menu as MenuIcon, MoreHorizontal, PanelsTopLeft, PartyPopper, Plus, RefreshCw, Save, Search, Settings, Share2, ShieldAlert, ShieldCheck, SlidersHorizontal, Star, TableProperties, Tags, TicketPercent, Trash2, TrendingUp, Upload, UserCheck, UserRound, Users, Utensils, Wallet, X,
 } from 'lucide-react';
 import {
   clearAdminSession, loadAdminState, persistAdminState, readAdminSession, readAdminState, roleCatalog, saveAdminSession, saveAdminState, sessionFromSupabaseUser, signInAdmin, signOutAdmin,
 } from './adminData';
 import WebsiteContentPage from './WebsiteContentPage';
 import TeamMembersPage from './TeamMembersPage';
+import ServicesAdminPage from './ServicesAdminPage';
 import { FinancePage, HrPage } from './crmPages';
 import { isSupabaseConfigured, removeMediaFile, supabase, uploadMediaFile } from '../lib/supabase';
 import './admin.css';
@@ -14,6 +15,7 @@ import './admin.css';
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'website', label: 'Website Content', icon: PanelsTopLeft, children: [{ id: 'website', label: 'Homepage' }, { id: 'team', label: 'Team Members' }] },
+  { id: 'services-overview', label: 'Services', icon: PartyPopper, children: [{ id: 'services-overview', label: 'Service Overview' }, { id: 'service-events', label: 'Event Types' }, { id: 'service-packages', label: 'Event Packages' }, { id: 'catering-packages', label: 'Catering Packages' }, { id: 'service-facilities', label: 'Facilities' }, { id: 'service-gallery', label: 'Service Gallery' }, { id: 'service-enquiries', label: 'Event Enquiries' }, { id: 'service-settings', label: 'Service Settings' }] },
   { id: 'menu', label: 'Menu Management', icon: Utensils, children: [{ id: 'menu', label: 'Menu Items' }, { id: 'categories', label: 'Categories' }] },
   { id: 'branches', label: 'Branches', icon: MapPin },
   { id: 'promotions', label: 'Promotions', icon: TicketPercent },
@@ -34,6 +36,14 @@ const pageMeta = {
   dashboard: ['Dashboard', 'Overview', 'A live view of your restaurant website operations.'],
   website: ['Website Content', 'Content workspace', 'Shape the homepage without changing code.'],
   team: ['Website Content', 'Team Members', 'Manage leadership profiles, publishing, contact details, and public display order.'],
+  'services-overview': ['Services', 'Service Overview', 'Manage event hosting and catering content from one publishing workspace.'],
+  'service-events': ['Services', 'Event Types', 'Manage the occasions customers can explore and enquire about.'],
+  'service-packages': ['Services', 'Event Packages', 'Manage guest ranges, inclusions, branches, and quotation display.'],
+  'catering-packages': ['Services', 'Catering Packages', 'Manage catering options, menus, delivery areas, and advance-order notes.'],
+  'service-facilities': ['Services', 'Facilities', 'Enable only verified facilities for each applicable branch.'],
+  'service-gallery': ['Services', 'Service Gallery', 'Publish event, dining, setup, and catering imagery.'],
+  'service-enquiries': ['Services', 'Event Enquiries', 'Qualify, assign, quote, and follow up on service enquiries.'],
+  'service-settings': ['Services', 'Service Settings', 'Control hero content, capacity, calls to action, SEO, and FAQs.'],
   menu: ['Menu Management', 'Menu Items', 'Manage dishes, prices, availability, and publishing.'],
   categories: ['Menu Management', 'Categories', 'Organise the menu into clear, discoverable groups.'],
   branches: ['Branches', 'Branch Directory', 'Manage branch details, hours, and availability.'],
@@ -53,10 +63,10 @@ const pageMeta = {
 
 const roleAccess = {
   super_admin: ['*'],
-  content_manager: ['dashboard', 'website', 'team', 'menu', 'categories', 'promotions', 'gallery', 'social', 'seo', 'media'],
-  branch_manager: ['dashboard', 'branches', 'team', 'menu', 'promotions', 'gallery', 'reservations', 'enquiries', 'hr'],
-  reservation_manager: ['dashboard', 'reservations', 'enquiries'],
-  viewer: ['dashboard', 'team', 'menu', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'finance', 'hr', 'social', 'seo', 'media'],
+  content_manager: ['dashboard', 'website', 'team', 'services-overview', 'service-events', 'service-packages', 'catering-packages', 'service-facilities', 'service-gallery', 'service-settings', 'menu', 'categories', 'promotions', 'gallery', 'social', 'seo', 'media'],
+  branch_manager: ['dashboard', 'branches', 'team', 'services-overview', 'service-events', 'service-packages', 'catering-packages', 'service-facilities', 'service-gallery', 'service-enquiries', 'menu', 'promotions', 'gallery', 'reservations', 'enquiries', 'hr'],
+  reservation_manager: ['dashboard', 'reservations', 'enquiries', 'service-enquiries'],
+  viewer: ['dashboard', 'team', 'services-overview', 'service-events', 'service-packages', 'catering-packages', 'service-facilities', 'service-gallery', 'service-enquiries', 'service-settings', 'menu', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'finance', 'hr', 'social', 'seo', 'media'],
 };
 
 const resourceConfig = {
@@ -209,13 +219,14 @@ function AdminShell({ session, state, view, setView, commit, onLogout, syncState
 }
 
 function NotificationMenu({ notifications }) { return <div className="admin-popover admin-notification-popover"><div className="admin-popover-heading"><strong>Notifications</strong><button className="admin-link-button">Mark all read</button></div>{notifications.map((notification) => <div className={`admin-notification ${notification.read ? 'read' : ''}`} key={notification.id}><span className="admin-notification-icon"><Bell size={14} /></span><div><strong>{notification.title}</strong><p>{notification.detail}</p><small>{notification.time}</small></div></div>)}<button className="admin-popover-footer">View notification centre <ArrowUpRight size={14} /></button></div>; }
-function QuickAddMenu({ onSelect }) { return <div className="admin-popover admin-quick-popover"><strong>Quick Add</strong>{[['menu', 'Menu item', Utensils], ['team', 'Team member', UserRound], ['finance', 'Finance transaction', Wallet], ['hr', 'Staff member', UserCheck], ['promotions', 'Promotion', TicketPercent], ['branches', 'Branch', MapPin], ['gallery', 'Gallery image', ImagePlus], ['social', 'Social link', Share2]].map(([id, label, Icon]) => <button key={id} onClick={() => onSelect(id)}><Icon size={15} /><span>{label}</span><Plus size={14} /></button>)}</div>; }
+function QuickAddMenu({ onSelect }) { return <div className="admin-popover admin-quick-popover"><strong>Quick Add</strong>{[['menu', 'Menu item', Utensils], ['service-events', 'Event type', PartyPopper], ['team', 'Team member', UserRound], ['finance', 'Finance transaction', Wallet], ['hr', 'Staff member', UserCheck], ['promotions', 'Promotion', TicketPercent], ['branches', 'Branch', MapPin], ['gallery', 'Gallery image', ImagePlus], ['social', 'Social link', Share2]].map(([id, label, Icon]) => <button key={id} onClick={() => onSelect(id)}><Icon size={15} /><span>{label}</span><Plus size={14} /></button>)}</div>; }
 
 function AdminView({ view, session, state, commit, notify, selectView }) {
   if (!hasAccess(session, view)) return <AccessDenied />;
   if (view === 'dashboard') return <OverviewPage state={state} selectView={selectView} />;
   if (view === 'website') return <WebsiteContentPage state={state} commit={commit} notify={notify} />;
   if (view === 'team') return <TeamMembersPage notify={notify} />;
+  if (view === 'services-overview' || view.startsWith('service-') || view === 'catering-packages') return <ServicesAdminPage section={view} state={state} commit={commit} notify={notify} navigate={selectView} />;
   if (view === 'media') return <MediaPage state={state} commit={commit} notify={notify} />;
   if (view === 'finance') return <FinancePage state={state} commit={commit} notify={notify} />;
   if (view === 'hr') return <HrPage state={state} commit={commit} notify={notify} />;

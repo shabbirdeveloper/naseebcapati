@@ -1,3 +1,5 @@
+import { createDefaultServicesContent, normalizeServicesContent } from '../services/servicesSeed';
+
 function readPersistedAdminState() {
   if (typeof window === 'undefined') return null;
   try { return JSON.parse(window.localStorage.getItem('naseeb-admin-state-v1') || 'null'); } catch { return null; }
@@ -187,6 +189,10 @@ export const socialLinks = persistedAdminState?.social?.length ? persistedAdminS
   { label: 'TikTok', href: 'https://www.tiktok.com/', className: 'tiktok' },
   { label: 'Google Business', href: 'https://www.google.com/maps/search/?api=1&query=Naseeb+Capati+Nan+Malaysia', className: 'google' },
 ];
+
+export const servicesContent = normalizeServicesContent(
+  persistedAdminState?.servicesContent || createDefaultServicesContent(),
+);
 
 export const contactInfo = persistedAdminState?.settings ? {
   email: persistedAdminState.settings.email,

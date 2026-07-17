@@ -2,21 +2,24 @@ import { Component, Suspense, createContext, lazy, useCallback, useContext, useE
 import { AnimatePresence, LazyMotion, domAnimation, m as motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
-import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, socialLinks } from './data/content';
+import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, servicesContent, socialLinks } from './data/content';
 import AdminApp from './admin/AdminApp';
 import { listPublishedTeamMembers, submitEnquiry, submitReservation } from './lib/supabase';
 import { MotionCard, MotionGroup, MotionImage, MotionPage, MotionReveal, buttonTransition, drawerTransition, headerVariants, itemVariants, motionSpring, staggerVariants } from './motion';
 
 const TeamPage = lazy(() => import('./team/TeamPages').then((module) => ({ default: module.TeamPage })));
 const TeamProfilePage = lazy(() => import('./team/TeamPages').then((module) => ({ default: module.TeamProfilePage })));
+const ServicesPage = lazy(() => import('./services/ServicesPages').then((module) => ({ default: module.ServicesPage })));
+const ServiceDetailPage = lazy(() => import('./services/ServicesPages').then((module) => ({ default: module.ServiceDetailPage })));
 
 const navItems = [
-  { label: 'Home', href: '/' }, { label: 'Menu', href: '/menu' }, { label: 'About Us', href: '/about' }, { label: 'Our Team', href: '/our-team' }, { label: 'Gallery', href: '/gallery' }, { label: 'Branches', href: '/branches' }, { label: 'Promotions', href: '/promotions' }, { label: 'Contact', href: '/contact' },
+  { label: 'Home', href: '/' }, { label: 'Menu', href: '/menu' }, { label: 'Services', href: '/services' }, { label: 'Promotions', href: '/promotions' }, { label: 'Branches', href: '/branches' }, { label: 'About Us', href: '/about' }, { label: 'Our Team', href: '/our-team' }, { label: 'Gallery', href: '/gallery' }, { label: 'Contact', href: '/contact' },
 ];
 
 const routeMeta = {
   '/': ['Naseeb Chapati Restaurant | Authentic Flavours, Freshly Served', 'Authentic Pakistani favourites, fresh chapati, naan, biryani, grills, and family meals across Johor.'],
   '/menu': ['Full Menu | Naseeb Chapati Restaurant', 'Search the Naseeb Chapati menu by dish, category, spice level, vegetarian options, and branch availability.'],
+  '/services': [servicesContent.settings.seoTitle, servicesContent.settings.seoDescription],
   '/about': ['About Us | Naseeb Chapati Restaurant', 'Discover the warm, family-first story behind Naseeb Chapati Restaurant.'],
   '/our-team': ['Our Team | Naseeb Chapati Restaurant', 'Meet the leadership team behind Naseeb Chapati Restaurant and its commitment to authentic Pakistani cuisine.'],
   '/branches': ['Branches | Naseeb Chapati Restaurant', 'Find Naseeb Chapati branches, independent opening hours, contact details, and directions.'],
@@ -35,6 +38,10 @@ function getPageMeta(path) {
   const branch = getBranchFromPath(path);
   if (branch) return [`${branch.name} Branch | Naseeb Chapati Restaurant`, `Visit Naseeb Chapati ${branch.name} for Pakistani favourites, branch-specific opening hours, directions, and ordering options.`];
   if (path.startsWith('/our-team/')) return ['Leadership Profile | Naseeb Chapati Restaurant', 'Meet a member of the Naseeb Chapati Restaurant leadership team.'];
+  if (path.startsWith('/services/')) {
+    const service = servicesContent.services.find((item) => item.slug === path.split('/')[2]);
+    if (service) return [service.seoTitle || `${service.name} | Naseeb Chapati Restaurant`, service.seoDescription || service.shortDescription];
+  }
   return routeMeta[path] || ['Naseeb Chapati Restaurant', routeMeta['/'][1]];
 }
 
@@ -523,6 +530,10 @@ function TeamRouteLoader() {
   return <section aria-label="Loading team page" style={{ display: 'grid', placeItems: 'center', minHeight: '72vh', padding: 32, background: '#f7f8f6', color: '#1f4d3a' }}><div style={{ display: 'grid', justifyItems: 'center', gap: 14 }}><span style={{ width: 46, height: 46, border: '3px solid #dce6df', borderTopColor: '#1f4d3a', borderRadius: '50%' }} /><strong>Loading our team...</strong></div></section>;
 }
 
+function ServiceRouteLoader() {
+  return <section aria-label="Loading services page" style={{ display: 'grid', placeItems: 'center', minHeight: '72vh', padding: 32, background: '#f7f8f6', color: '#1f4d3a' }}><div style={{ display: 'grid', justifyItems: 'center', gap: 14 }}><span style={{ width: 46, height: 46, border: '3px solid #dce6df', borderTopColor: '#1f4d3a', borderRadius: '50%', animation: 'spin .8s linear infinite' }} /><strong>Preparing services...</strong></div></section>;
+}
+
 class AdminErrorBoundary extends Component {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
@@ -540,6 +551,8 @@ function App() {
   let page = <NotFoundPage />;
   if (path === '/') page = <HomePage />;
   else if (path === '/menu') page = <MenuPage />;
+  else if (path === '/services') page = <Suspense fallback={<ServiceRouteLoader />}><ServicesPage /></Suspense>;
+  else if (path.startsWith('/services/')) page = <Suspense fallback={<ServiceRouteLoader />}><ServiceDetailPage slug={path.split('/')[2]} /></Suspense>;
   else if (path === '/about') page = <AboutPage />;
   else if (path === '/our-team') page = <Suspense fallback={<TeamRouteLoader />}><TeamPage /></Suspense>;
   else if (path.startsWith('/our-team/')) page = <Suspense fallback={<TeamRouteLoader />}><TeamProfilePage slug={path.split('/')[2]} /></Suspense>;
