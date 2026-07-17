@@ -451,7 +451,7 @@ function SocialSection() {
 }
 
 function HomePage() {
-  return <div className="home-page"><Hero /><QuickInfo /><FoodCoverflow /><CategoryGrid /><HomeTeamSection /><AboutBand /><BestSellers /><PromotionsSection /><ReviewSection /><GalleryStrip /><ReservationSection /><SocialSection /><BranchSection /></div>;
+  return <div className="home-page"><Hero /><QuickInfo /><FoodCoverflow /><CategoryGrid /><AboutBand /><BestSellers /><PromotionsSection /><HomeTeamSection /><ReviewSection /><GalleryStrip /><ReservationSection /><SocialSection /><BranchSection /></div>;
 }
 
 function DishModal({ item, onClose }) {
