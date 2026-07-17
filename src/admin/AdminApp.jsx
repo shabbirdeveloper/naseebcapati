@@ -294,10 +294,80 @@ function makeNewRecord(resource) {
 
 function RecordDrawer({ resource, record, onSave, onClose }) {
   const [draft, setDraft] = useState(record);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState('');
   const update = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
   const updateHours = (day, slot, value) => setDraft((current) => ({ ...current, hours: { ...current.hours, [day]: (current.hours?.[day] || ['', '']).map((time, index) => index === slot ? value : time) } }));
   const fields = resource === 'menu' ? [['name', 'Item name'], ['category', 'Category'], ['price', 'Base price'], ['status', 'Status'], ['stock', 'Stock status'], ['description', 'Short description'], ['ingredients', 'Ingredients']] : resource === 'branches' ? [['name', 'Branch name'], ['code', 'Branch code'], ['address', 'Full address'], ['phone', 'Phone'], ['whatsapp', 'WhatsApp'], ['manager', 'Branch manager'], ['status', 'Status']] : resource === 'promotions' ? [['title', 'Promotion title'], ['type', 'Promotion type'], ['startDate', 'Start date'], ['endDate', 'End date'], ['branches', 'Applicable branches'], ['status', 'Status'], ['details', 'Short description'], ['terms', 'Terms and conditions']] : resource === 'gallery' ? [['title', 'Title'], ['category', 'Category'], ['branch', 'Branch'], ['alt', 'Image alt text'], ['status', 'Status']] : resource === 'reviews' ? [['name', 'Customer name'], ['rating', 'Rating'], ['branch', 'Branch'], ['status', 'Status'], ['text', 'Review text']] : resource === 'reservations' ? [['name', 'Customer name'], ['phone', 'Phone'], ['email', 'Email'], ['branch', 'Branch'], ['date', 'Date'], ['time', 'Time'], ['guests', 'Guests'], ['status', 'Status'], ['notes', 'Internal notes']] : resource === 'enquiries' ? [['name', 'Name'], ['email', 'Email'], ['phone', 'Phone'], ['branch', 'Branch'], ['subject', 'Subject'], ['status', 'Status'], ['message', 'Message'], ['notes', 'Internal notes']] : resource === 'social' ? [['title', 'Account title'], ['href', 'Profile URL'], ['username', 'Username'], ['status', 'Status'], ['displayOrder', 'Display order']] : resource === 'seo' ? [['page', 'Page'], ['path', 'Path'], ['title', 'Meta title'], ['description', 'Meta description'], ['status', 'Status']] : [['name', 'Name'], ['description', 'Description'], ['status', 'Status']];
-  return <div className="admin-drawer-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><aside className="admin-drawer"><div className="admin-drawer-head"><div><span className="admin-eyebrow">{record.id?.startsWith('new-') ? 'Create record' : 'Edit record'}</span><h2>{resourceConfig[resource]?.title || 'Edit content'}</h2></div><button className="admin-icon-button" onClick={onClose} aria-label="Close editor"><X size={18} /></button></div>{resource === 'menu' && <div className="admin-drawer-image"><img src={draft.image || '/naseeb-chapati-logo.png'} alt="" /><button className="admin-image-edit"><Edit3 size={14} />Change image</button></div>}<form className="admin-form admin-drawer-form" onSubmit={(event) => { event.preventDefault(); onSave({ ...draft, price: draft.price === '' ? null : Number(draft.price), rating: draft.rating === '' ? 5 : Number(draft.rating), guests: draft.guests === '' ? 2 : Number(draft.guests) }); }}><div className="admin-drawer-fields">{fields.map(([key, label]) => <label key={key}>{label}{['status', 'category', 'type', 'stock', 'branch'].includes(key) ? <select value={draft[key] ?? ''} onChange={(event) => update(key, event.target.value)}><option value="">Select {label.toLowerCase()}</option>{(key === 'status' ? ['Draft', 'Published', 'Active', 'Inactive', 'Pending', 'Approved', 'Confirmed', 'Resolved'] : key === 'category' ? ['Chapati and Bread', 'Breakfast', 'Chicken Dishes', 'Mutton Dishes', 'Biryani and Rice', 'Curry', 'Tandoori and Grill', 'Family Platters', 'Fast Food', 'Hot Drinks', 'Cold Drinks', 'Desserts'] : key === 'branch' ? ['All branches', 'Pasir Gudang', 'Ayer Hitam', 'Angsana JB Mall'] : key === 'stock' ? ['Available', 'Sold out', 'Scheduled'] : ['Combo meal', 'Percentage discount', 'Fixed discount', 'Weekend promotion']).map((option) => <option key={option}>{option}</option>)}</select> : key === 'description' || key === 'ingredients' || key === 'terms' || key === 'text' || key === 'message' || key === 'notes' ? <textarea value={draft[key] ?? ''} onChange={(event) => update(key, event.target.value)} rows="3" /> : <input type={['price', 'rating', 'guests', 'displayOrder'].includes(key) ? 'number' : ['startDate', 'endDate', 'date'].includes(key) ? 'date' : ['time'].includes(key) ? 'time' : key === 'email' ? 'email' : 'text'} value={draft[key] ?? ''} onChange={(event) => update(key, event.target.value)} />}</label>)}</div>{resource === 'branches' && <div className="admin-hours-editor"><div><strong>Independent opening hours</strong><small>Each branch keeps its own weekly schedule.</small></div>{[['Monday', '1'], ['Tuesday', '2'], ['Wednesday', '3'], ['Thursday', '4'], ['Friday', '5'], ['Saturday', '6'], ['Sunday', '0']].map(([label, day]) => <label key={day}><span>{label}</span><div><input type="time" value={draft.hours?.[day]?.[0] || ''} onChange={(event) => updateHours(day, 0, event.target.value)} /><span>to</span><input type="time" value={draft.hours?.[day]?.[1] || ''} onChange={(event) => updateHours(day, 1, event.target.value)} /></div></label>)}</div>}<div className="admin-drawer-checks"><label className="admin-switch-row"><input type="checkbox" checked={Boolean(draft.featured)} onChange={(event) => update('featured', event.target.checked)} /><span className="admin-switch" /><span>Featured content</span></label><label className="admin-switch-row"><input type="checkbox" checked={draft.halal !== false} onChange={(event) => update('halal', event.target.checked)} /><span className="admin-switch" /><span>Halal / approved</span></label></div><div className="admin-drawer-actions"><button type="button" className="admin-outline-button" onClick={onClose}>Cancel</button><button className="admin-primary-button" type="submit"><Save size={15} />Save changes</button></div></form></aside></div>;
+
+  const uploadMenuImage = async (event) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      setImageError('Choose a PNG, JPG, WebP, or AVIF image up to 5 MB.');
+      input.value = '';
+      return;
+    }
+
+    setImageError('');
+    setUploadingImage(true);
+    try {
+      if (isSupabaseConfigured) {
+        const uploaded = await uploadMediaFile(file, 'menu');
+        if (uploaded.error) throw uploaded.error;
+        setDraft((current) => ({ ...current, image: uploaded.url, storagePath: uploaded.path }));
+      } else {
+        const image = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('The selected image could not be read.'));
+          reader.readAsDataURL(file);
+        });
+        setDraft((current) => ({ ...current, image, storagePath: '' }));
+      }
+    } catch (error) {
+      setImageError(`Image upload failed: ${error.message || 'Please try again.'}`);
+    } finally {
+      setUploadingImage(false);
+      input.value = '';
+    }
+  };
+
+  const submitRecord = (event) => {
+    event.preventDefault();
+    if (uploadingImage) return;
+    onSave({
+      ...draft,
+      price: draft.price === '' ? null : Number(draft.price),
+      rating: draft.rating === '' ? 5 : Number(draft.rating),
+      guests: draft.guests === '' ? 2 : Number(draft.guests),
+    });
+  };
+
+  return <div className="admin-drawer-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !uploadingImage && onClose()}>
+    <aside className="admin-drawer">
+      <div className="admin-drawer-head"><div><span className="admin-eyebrow">{record.id?.startsWith('new-') ? 'Create record' : 'Edit record'}</span><h2>{resourceConfig[resource]?.title || 'Edit content'}</h2></div><button className="admin-icon-button" onClick={onClose} aria-label="Close editor" disabled={uploadingImage}><X size={18} /></button></div>
+      {resource === 'menu' && <>
+        <div className={`admin-drawer-image ${uploadingImage ? 'is-uploading' : ''}`}>
+          <img src={draft.image || '/naseeb-chapati-logo.png'} alt={`${draft.name || 'Menu item'} preview`} />
+          <label className="admin-image-edit"><Edit3 size={14} />{uploadingImage ? 'Uploading…' : 'Change image'}<input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={uploadMenuImage} disabled={uploadingImage} /></label>
+        </div>
+        <div className="admin-menu-image-controls">
+          <label>Image URL<input type="url" value={draft.image || ''} onChange={(event) => { update('image', event.target.value); setImageError(''); }} placeholder="Upload an image or paste a public URL" disabled={uploadingImage} /></label>
+          <small>PNG, JPG, WebP, or AVIF · maximum 5 MB</small>
+          {imageError && <div className="admin-form-error" role="alert"><CircleAlert size={16} />{imageError}</div>}
+          {uploadingImage && <div className="admin-menu-image-progress" role="status" aria-live="polite"><RefreshCw size={15} />Uploading image to storage…</div>}
+        </div>
+      </>}
+      <form className="admin-form admin-drawer-form" onSubmit={submitRecord}>
+        <div className="admin-drawer-fields">{fields.map(([key, label]) => <label key={key}>{label}{['status', 'category', 'type', 'stock', 'branch'].includes(key) ? <select value={draft[key] ?? ''} onChange={(event) => update(key, event.target.value)}><option value="">Select {label.toLowerCase()}</option>{(key === 'status' ? ['Draft', 'Published', 'Active', 'Inactive', 'Pending', 'Approved', 'Confirmed', 'Resolved'] : key === 'category' ? ['Chapati and Bread', 'Breakfast', 'Chicken Dishes', 'Mutton Dishes', 'Biryani and Rice', 'Curry', 'Tandoori and Grill', 'Family Platters', 'Fast Food', 'Hot Drinks', 'Cold Drinks', 'Desserts'] : key === 'branch' ? ['All branches', 'Pasir Gudang', 'Ayer Hitam', 'Angsana JB Mall'] : key === 'stock' ? ['Available', 'Sold out', 'Scheduled'] : ['Combo meal', 'Percentage discount', 'Fixed discount', 'Weekend promotion']).map((option) => <option key={option}>{option}</option>)}</select> : key === 'description' || key === 'ingredients' || key === 'terms' || key === 'text' || key === 'message' || key === 'notes' ? <textarea value={draft[key] ?? ''} onChange={(event) => update(key, event.target.value)} rows="3" /> : <input type={['price', 'rating', 'guests', 'displayOrder'].includes(key) ? 'number' : ['startDate', 'endDate', 'date'].includes(key) ? 'date' : ['time'].includes(key) ? 'time' : key === 'email' ? 'email' : 'text'} value={draft[key] ?? ''} onChange={(event) => update(key, event.target.value)} />}</label>)}</div>
+        {resource === 'branches' && <div className="admin-hours-editor"><div><strong>Independent opening hours</strong><small>Each branch keeps its own weekly schedule.</small></div>{[['Monday', '1'], ['Tuesday', '2'], ['Wednesday', '3'], ['Thursday', '4'], ['Friday', '5'], ['Saturday', '6'], ['Sunday', '0']].map(([label, day]) => <label key={day}><span>{label}</span><div><input type="time" value={draft.hours?.[day]?.[0] || ''} onChange={(event) => updateHours(day, 0, event.target.value)} /><span>to</span><input type="time" value={draft.hours?.[day]?.[1] || ''} onChange={(event) => updateHours(day, 1, event.target.value)} /></div></label>)}</div>}
+        <div className="admin-drawer-checks"><label className="admin-switch-row"><input type="checkbox" checked={Boolean(draft.featured)} onChange={(event) => update('featured', event.target.checked)} /><span className="admin-switch" /><span>Featured content</span></label><label className="admin-switch-row"><input type="checkbox" checked={draft.halal !== false} onChange={(event) => update('halal', event.target.checked)} /><span className="admin-switch" /><span>Halal / approved</span></label></div>
+        <div className="admin-drawer-actions"><button type="button" className="admin-outline-button" onClick={onClose} disabled={uploadingImage}>Cancel</button><button className="admin-primary-button" type="submit" disabled={uploadingImage}><Save size={15} />{uploadingImage ? 'Uploading image…' : 'Save changes'}</button></div>
+      </form>
+    </aside>
+  </div>;
 }
 
 function WebsiteContentPageLegacy({ state, commit, notify }) {

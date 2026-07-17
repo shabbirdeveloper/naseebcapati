@@ -268,7 +268,18 @@
 .admin-drawer-head h2 { margin-top: 8px; font-size: 25px; }
 .admin-drawer-image { position: relative; margin: 20px 0; overflow: hidden; border-radius: 10px; background: var(--admin-soft); }
 .admin-drawer-image img { width: 100%; height: 160px; object-fit: cover; }
-.admin-image-edit { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 0; border-radius: 7px; background: rgba(17,17,17,.72); color: white; font-size: 9px; font-weight: 800; }
+.admin-drawer-image.is-uploading img { opacity: .62; }
+.admin-image-edit { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 0; border-radius: 7px; background: rgba(17,17,17,.78); color: white; font-size: 9px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,.18); }
+.admin-image-edit:hover { background: var(--admin-green); }
+.admin-image-edit:focus-within { outline: 3px solid rgba(155, 207, 104, .4); outline-offset: 2px; }
+.admin-image-edit input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.admin-menu-image-controls { display: grid; gap: 8px; margin: -8px 0 20px; }
+.admin-menu-image-controls > label { display: grid; gap: 7px; color: var(--admin-ink); font-size: 10px; font-weight: 800; }
+.admin-menu-image-controls input { min-height: 38px; padding: 0 11px; border: 1px solid var(--admin-border); border-radius: 8px; background: white; color: var(--admin-ink); font: inherit; font-weight: 600; }
+.admin-menu-image-controls > small { color: var(--admin-muted); font-size: 9px; }
+.admin-menu-image-progress { display: flex; align-items: center; gap: 7px; color: var(--admin-green); font-size: 10px; font-weight: 800; }
+.admin-menu-image-progress svg { animation: admin-image-spin .9s linear infinite; }
+@keyframes admin-image-spin { to { transform: rotate(360deg); } }
 .admin-drawer-form { padding-top: 22px; }
 .admin-drawer-fields { display: grid; gap: 13px; }
 .admin-drawer-fields label { gap: 6px; }

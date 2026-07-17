@@ -4,7 +4,7 @@ import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
 import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, socialLinks } from './data/content';
 import AdminApp from './admin/AdminApp';
-import { submitEnquiry, submitReservation } from './lib/supabase';
+import { listPublishedTeamMembers, submitEnquiry, submitReservation } from './lib/supabase';
 import { MotionCard, MotionGroup, MotionImage, MotionPage, MotionReveal, buttonTransition, drawerTransition, headerVariants, itemVariants, motionSpring, staggerVariants } from './motion';
 
 const TeamPage = lazy(() => import('./team/TeamPages').then((module) => ({ default: module.TeamPage })));
@@ -238,11 +238,11 @@ function Header() {
     <motion.header className={`site-header ${isHome ? 'site-header-home' : ''} ${scrolled ? 'is-scrolled' : ''}`} initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={headerVariants}>
       <div className="container header-inner">
         <Logo />
-        <motion.nav className="desktop-nav" aria-label="Primary navigation" initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={staggerVariants}>{navItems.map((item) => <motion.a variants={itemVariants} key={item.href} className={getPath() === item.href ? 'active' : ''} href={item.href} onClick={(event) => { event.preventDefault(); navigateTo(item.href); }}>{item.href === '/menu' && <BookOpen size={15} />}<span>{item.label}</span></motion.a>)}</motion.nav>
+        <motion.nav className="desktop-nav" aria-label="Primary navigation" initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={staggerVariants}>{navItems.map((item) => <motion.a variants={itemVariants} key={item.href} className={getPath() === item.href ? 'active' : ''} href={item.href} onClick={(event) => { event.preventDefault(); navigateTo(item.href); }}><span>{item.label}</span></motion.a>)}</motion.nav>
         <div className="header-actions"><button className="cart-trigger" type="button" onClick={toggleCart} aria-label={`Open cart${itemCount ? `, ${itemCount} item${itemCount === 1 ? '' : 's'}` : ''}`}><ShoppingCart size={19} /><span className="cart-trigger-label">Cart</span>{itemCount > 0 && <span className="cart-count">{itemCount}</span>}</button><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button><button className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((value) => !value)}>{open ? <X size={22} /> : <MenuIcon size={22} />}</button></div>
       </div>
     </motion.header>
-    <AnimatePresence>{open && <motion.div className="mobile-nav is-open" aria-hidden={!open} initial={reduceMotion ? false : { opacity: 0, x: '100%' }} animate={reduceMotion ? undefined : { opacity: 1, x: 0 }} exit={reduceMotion ? undefined : { opacity: 0, x: '100%' }} transition={reduceMotion ? { duration: 0 } : drawerTransition}><div className="mobile-nav-top"><Logo /><button className="icon-button" aria-label="Close menu" onClick={close}><X size={21} /></button></div><motion.nav initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={staggerVariants}>{navItems.map((item) => <motion.a variants={itemVariants} key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); close(); navigateTo(item.href); }}>{item.href === '/menu' && <BookOpen size={20} />}<span>{item.label}</span><ArrowUpRight size={15} /></motion.a>)}</motion.nav><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button></motion.div>}</AnimatePresence>
+    <AnimatePresence>{open && <motion.div className="mobile-nav is-open" aria-hidden={!open} initial={reduceMotion ? false : { opacity: 0, x: '100%' }} animate={reduceMotion ? undefined : { opacity: 1, x: 0 }} exit={reduceMotion ? undefined : { opacity: 0, x: '100%' }} transition={reduceMotion ? { duration: 0 } : drawerTransition}><div className="mobile-nav-top"><Logo /><button className="icon-button" aria-label="Close menu" onClick={close}><X size={21} /></button></div><motion.nav initial={reduceMotion ? false : 'hidden'} animate={reduceMotion ? undefined : 'show'} variants={staggerVariants}>{navItems.map((item) => <motion.a variants={itemVariants} key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); close(); navigateTo(item.href); }}><span>{item.label}</span><ArrowUpRight size={15} /></motion.a>)}</motion.nav><Button href={contactInfo.orderUrl} variant="primary" icon={ShoppingBag}>{homepageContent.secondaryButtonLabel || 'Order Now'}</Button></motion.div>}</AnimatePresence>
   </>;
 }
 
@@ -353,6 +353,30 @@ function CategoryGrid() {
   return <section className="section categories-section"><div className="container"><SectionHeading title="Browse by category" copy="Whatever the craving, there’s something warm, flavourful, and made to share." action={<Button href="/menu" variant="outline" icon={ArrowUpRight}>Explore all</Button>} /><MotionGroup className="category-grid" amount={.12}>{menuCategories.map((category, index) => <MotionCard as="a" className="category-card" href="/menu" key={category.name} index={index} onClick={(event) => { event.preventDefault(); navigateTo('/menu'); }}><img src={category.image} alt={category.name} loading="lazy" /><div className="category-card-overlay"><span>{category.name}</span><ArrowUpRight size={17} /></div></MotionCard>)}</MotionGroup></div></section>;
 }
 
+function HomeTeamSection() {
+  const [members, setMembers] = useState([]);
+  const [status, setStatus] = useState('loading');
+  useEffect(() => {
+    let active = true;
+    listPublishedTeamMembers().then(({ data, error }) => {
+      if (!active) return;
+      setMembers((data || []).slice(0, 3));
+      setStatus(error ? 'error' : 'ready');
+    });
+    return () => { active = false; };
+  }, []);
+  return <section className="section home-team-section" aria-label="Our Team">
+    <div className="container">
+      <SectionHeading title="Meet our team" copy="The people guiding Naseeb Chapati with care, experience, and a commitment to warm hospitality." action={<Button href="/our-team" variant="outline" icon={ArrowUpRight}>View Our Team</Button>} />
+      <div className="home-team-content">
+        {status === 'loading' && <div className="home-team-grid" aria-label="Loading team members">{Array.from({ length: 3 }, (_, index) => <div className="home-team-skeleton" key={index}><span /><i /><i /></div>)}</div>}
+        {status === 'ready' && members.length > 0 && <MotionGroup className="home-team-grid" amount={.12}>{members.map((member, index) => <MotionCard as="a" className="home-team-card" href={`/our-team/${member.slug}`} key={member.id} index={index} onClick={(event) => { event.preventDefault(); navigateTo(`/our-team/${member.slug}`); }}><div className="home-team-photo">{member.profile_image ? <SafeImage src={member.profile_image} fallback="/naseeb-chapati-logo.png" alt={member.image_alt || `${member.full_name}, ${member.position}`} loading="lazy" /> : <span><Users size={34} /></span>}</div><div className="home-team-card-copy"><span>{member.position}</span><h3>{member.full_name}</h3>{member.short_intro && <p>{member.short_intro}</p>}<strong>View profile <ArrowUpRight size={14} /></strong></div></MotionCard>)}</MotionGroup>}
+        {status !== 'loading' && members.length === 0 && <MotionReveal className="home-team-empty" y={12}><span><Users size={25} /></span><div><h3>Our leadership profiles are being prepared.</h3><p>Published profiles from the Team Members dashboard will appear here automatically.</p></div><Button href="/our-team" variant="primary" icon={ArrowUpRight}>Visit Our Team</Button></MotionReveal>}
+      </div>
+    </div>
+  </section>;
+}
+
 function AboutBand() {
   if (homepageContent.showAbout === false) return null;
   return <section className="about-band"><div className="container about-band-grid"><MotionImage className="about-band-image"><img src={homepageContent.aboutImage || imageUrls.interior} alt="Warm Naseeb Chapati dining room with family tables" loading="lazy" /></MotionImage><MotionReveal className="about-band-copy" y={18}><p className="eyebrow">About Naseeb Chapati</p><h2>{homepageContent.aboutHeading}</h2><p>{homepageContent.aboutText}</p><div className="value-list"><span><BadgeCheck size={18} />Fresh, made-to-order plates</span><span><BadgeCheck size={18} />Authentic recipes and spices</span><span><BadgeCheck size={18} />A welcoming family dining experience</span></div><Button href={homepageContent.aboutButtonUrl || '/about'} variant="primary" icon={ArrowUpRight}>{homepageContent.aboutButtonLabel || 'Learn more about us'}</Button></MotionReveal></div></section>;
@@ -427,7 +451,7 @@ function SocialSection() {
 }
 
 function HomePage() {
-  return <div className="home-page"><Hero /><QuickInfo /><FoodCoverflow /><CategoryGrid /><AboutBand /><BestSellers /><BranchSection /><PromotionsSection /><ReviewSection /><GalleryStrip /><ReservationSection /><SocialSection /></div>;
+  return <div className="home-page"><Hero /><QuickInfo /><FoodCoverflow /><CategoryGrid /><HomeTeamSection /><AboutBand /><BestSellers /><PromotionsSection /><ReviewSection /><GalleryStrip /><ReservationSection /><SocialSection /><BranchSection /></div>;
 }
 
 function DishModal({ item, onClose }) {
