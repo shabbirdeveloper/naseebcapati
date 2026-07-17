@@ -6,13 +6,14 @@ import {
   clearAdminSession, loadAdminState, persistAdminState, readAdminSession, readAdminState, roleCatalog, saveAdminSession, saveAdminState, sessionFromSupabaseUser, signInAdmin, signOutAdmin,
 } from './adminData';
 import WebsiteContentPage from './WebsiteContentPage';
+import TeamMembersPage from './TeamMembersPage';
 import { FinancePage, HrPage } from './crmPages';
 import { isSupabaseConfigured, removeMediaFile, supabase, uploadMediaFile } from '../lib/supabase';
 import './admin.css';
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'website', label: 'Website Content', icon: PanelsTopLeft },
+  { id: 'website', label: 'Website Content', icon: PanelsTopLeft, children: [{ id: 'website', label: 'Homepage' }, { id: 'team', label: 'Team Members' }] },
   { id: 'menu', label: 'Menu Management', icon: Utensils, children: [{ id: 'menu', label: 'Menu Items' }, { id: 'categories', label: 'Categories' }] },
   { id: 'branches', label: 'Branches', icon: MapPin },
   { id: 'promotions', label: 'Promotions', icon: TicketPercent },
@@ -32,6 +33,7 @@ const navigation = [
 const pageMeta = {
   dashboard: ['Dashboard', 'Overview', 'A live view of your restaurant website operations.'],
   website: ['Website Content', 'Content workspace', 'Shape the homepage without changing code.'],
+  team: ['Website Content', 'Team Members', 'Manage leadership profiles, publishing, contact details, and public display order.'],
   menu: ['Menu Management', 'Menu Items', 'Manage dishes, prices, availability, and publishing.'],
   categories: ['Menu Management', 'Categories', 'Organise the menu into clear, discoverable groups.'],
   branches: ['Branches', 'Branch Directory', 'Manage branch details, hours, and availability.'],
@@ -51,10 +53,10 @@ const pageMeta = {
 
 const roleAccess = {
   super_admin: ['*'],
-  content_manager: ['dashboard', 'website', 'menu', 'categories', 'promotions', 'gallery', 'social', 'seo', 'media'],
-  branch_manager: ['dashboard', 'branches', 'menu', 'promotions', 'gallery', 'reservations', 'enquiries', 'hr'],
+  content_manager: ['dashboard', 'website', 'team', 'menu', 'categories', 'promotions', 'gallery', 'social', 'seo', 'media'],
+  branch_manager: ['dashboard', 'branches', 'team', 'menu', 'promotions', 'gallery', 'reservations', 'enquiries', 'hr'],
   reservation_manager: ['dashboard', 'reservations', 'enquiries'],
-  viewer: ['dashboard', 'menu', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'finance', 'hr', 'social', 'seo', 'media'],
+  viewer: ['dashboard', 'team', 'menu', 'categories', 'branches', 'promotions', 'gallery', 'reviews', 'reservations', 'enquiries', 'finance', 'hr', 'social', 'seo', 'media'],
 };
 
 const resourceConfig = {
@@ -207,12 +209,13 @@ function AdminShell({ session, state, view, setView, commit, onLogout, syncState
 }
 
 function NotificationMenu({ notifications }) { return <div className="admin-popover admin-notification-popover"><div className="admin-popover-heading"><strong>Notifications</strong><button className="admin-link-button">Mark all read</button></div>{notifications.map((notification) => <div className={`admin-notification ${notification.read ? 'read' : ''}`} key={notification.id}><span className="admin-notification-icon"><Bell size={14} /></span><div><strong>{notification.title}</strong><p>{notification.detail}</p><small>{notification.time}</small></div></div>)}<button className="admin-popover-footer">View notification centre <ArrowUpRight size={14} /></button></div>; }
-function QuickAddMenu({ onSelect }) { return <div className="admin-popover admin-quick-popover"><strong>Quick Add</strong>{[['menu', 'Menu item', Utensils], ['finance', 'Finance transaction', Wallet], ['hr', 'Staff member', UserCheck], ['promotions', 'Promotion', TicketPercent], ['branches', 'Branch', MapPin], ['gallery', 'Gallery image', ImagePlus], ['social', 'Social link', Share2]].map(([id, label, Icon]) => <button key={id} onClick={() => onSelect(id)}><Icon size={15} /><span>{label}</span><Plus size={14} /></button>)}</div>; }
+function QuickAddMenu({ onSelect }) { return <div className="admin-popover admin-quick-popover"><strong>Quick Add</strong>{[['menu', 'Menu item', Utensils], ['team', 'Team member', UserRound], ['finance', 'Finance transaction', Wallet], ['hr', 'Staff member', UserCheck], ['promotions', 'Promotion', TicketPercent], ['branches', 'Branch', MapPin], ['gallery', 'Gallery image', ImagePlus], ['social', 'Social link', Share2]].map(([id, label, Icon]) => <button key={id} onClick={() => onSelect(id)}><Icon size={15} /><span>{label}</span><Plus size={14} /></button>)}</div>; }
 
 function AdminView({ view, session, state, commit, notify, selectView }) {
   if (!hasAccess(session, view)) return <AccessDenied />;
   if (view === 'dashboard') return <OverviewPage state={state} selectView={selectView} />;
   if (view === 'website') return <WebsiteContentPage state={state} commit={commit} notify={notify} />;
+  if (view === 'team') return <TeamMembersPage notify={notify} />;
   if (view === 'media') return <MediaPage state={state} commit={commit} notify={notify} />;
   if (view === 'finance') return <FinancePage state={state} commit={commit} notify={notify} />;
   if (view === 'hr') return <HrPage state={state} commit={commit} notify={notify} />;

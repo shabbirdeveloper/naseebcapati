@@ -19,11 +19,12 @@ const CONTENT_ROW_ID = 'default';
 const CONTENT_STORAGE_KEY = 'naseeb-admin-state-v1';
 export const MEDIA_BUCKET = 'naseeb-media';
 
-export async function uploadMediaFile(file) {
+export async function uploadMediaFile(file, folder = 'gallery') {
   if (!supabase) return { path: '', url: '', error: new Error('Supabase Storage is not configured.') };
   const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
   const uniqueName = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const path = `gallery/${uniqueName}.${extension}`;
+  const safeFolder = String(folder || 'gallery').replace(/[^a-z0-9/_-]/gi, '').replace(/^\/+|\/+$/g, '') || 'gallery';
+  const path = `${safeFolder}/${uniqueName}.${extension}`;
   const { data, error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
     cacheControl: '31536000',
     contentType: file.type,
@@ -94,6 +95,124 @@ export async function loadPublicContentCache() {
   } catch (storageError) {
     return { ok: false, source: 'local', error: storageError };
   }
+}
+
+const TEAM_MEMBER_COLUMNS = 'id, full_name, slug, position, department, short_intro, biography, vision, quote, experience, qualification, profile_image, cover_image, email, phone, whatsapp, linkedin, facebook, instagram, website, featured, display_order, status, seo_title, seo_description, meta_image, image_alt, gallery_images, created_at, updated_at';
+
+export function createTeamSlug(value = '') {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+}
+
+function normalizeTeamMember(member) {
+  if (!member) return member;
+  return {
+    ...member,
+    gallery_images: Array.isArray(member.gallery_images) ? member.gallery_images.filter(Boolean) : [],
+    display_order: Number.isFinite(Number(member.display_order)) ? Number(member.display_order) : 0,
+    featured: Boolean(member.featured),
+  };
+}
+
+function teamMemberPayload(member) {
+  const nullableFields = [
+    'department', 'short_intro', 'biography', 'vision', 'quote', 'experience', 'qualification',
+    'profile_image', 'cover_image', 'email', 'phone', 'whatsapp', 'linkedin', 'facebook',
+    'instagram', 'website', 'seo_title', 'seo_description', 'meta_image', 'image_alt',
+  ];
+  const payload = {
+    full_name: String(member.full_name || '').trim(),
+    slug: createTeamSlug(member.slug || member.full_name),
+    position: String(member.position || '').trim(),
+    featured: Boolean(member.featured),
+    display_order: Math.max(0, Number(member.display_order) || 0),
+    status: ['Draft', 'Published', 'Archived'].includes(member.status) ? member.status : 'Draft',
+    gallery_images: Array.isArray(member.gallery_images) ? member.gallery_images.filter(Boolean) : [],
+  };
+  nullableFields.forEach((field) => {
+    const value = typeof member[field] === 'string' ? member[field].trim() : member[field];
+    payload[field] = value || null;
+  });
+  return payload;
+}
+
+export async function listPublishedTeamMembers() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase
+    .from('team_members')
+    .select(TEAM_MEMBER_COLUMNS)
+    .eq('status', 'Published')
+    .order('featured', { ascending: false })
+    .order('display_order', { ascending: true })
+    .order('full_name', { ascending: true });
+  return { data: (data || []).map(normalizeTeamMember), error };
+}
+
+export async function getTeamMemberBySlug(slug, { preview = false } = {}) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  let query = supabase
+    .from('team_members')
+    .select(TEAM_MEMBER_COLUMNS)
+    .eq('slug', createTeamSlug(slug));
+  if (!preview) query = query.eq('status', 'Published');
+  const { data, error } = await query.maybeSingle();
+  return { data: normalizeTeamMember(data), error };
+}
+
+export async function listAdminTeamMembers() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase
+    .from('team_members')
+    .select(TEAM_MEMBER_COLUMNS)
+    .order('display_order', { ascending: true })
+    .order('updated_at', { ascending: false });
+  return { data: (data || []).map(normalizeTeamMember), error };
+}
+
+export async function saveTeamMember(member) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const payload = teamMemberPayload(member);
+  const query = member.id
+    ? supabase.from('team_members').update(payload).eq('id', member.id)
+    : supabase.from('team_members').insert(payload);
+  const { data, error } = await query.select(TEAM_MEMBER_COLUMNS).single();
+  return { data: normalizeTeamMember(data), error };
+}
+
+export async function updateTeamMembers(ids, changes) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  if (!ids.length) return { data: [], error: null };
+  const allowed = {};
+  if (changes.status && ['Draft', 'Published', 'Archived'].includes(changes.status)) allowed.status = changes.status;
+  if (typeof changes.featured === 'boolean') allowed.featured = changes.featured;
+  const { data, error } = await supabase
+    .from('team_members')
+    .update(allowed)
+    .in('id', ids)
+    .select(TEAM_MEMBER_COLUMNS);
+  return { data: (data || []).map(normalizeTeamMember), error };
+}
+
+export async function deleteTeamMembers(ids) {
+  if (!supabase) return { error: new Error('Supabase is not configured.') };
+  if (!ids.length) return { error: null };
+  const { error } = await supabase.from('team_members').delete().in('id', ids);
+  return { error };
+}
+
+export async function reorderTeamMembers(members) {
+  if (!supabase) return { error: new Error('Supabase is not configured.') };
+  const results = await Promise.all(
+    members.map((member, index) => supabase
+      .from('team_members')
+      .update({ display_order: index })
+      .eq('id', member.id)),
+  );
+  return { error: results.find((result) => result.error)?.error || null };
 }
 
 export { CONTENT_ROW_ID };

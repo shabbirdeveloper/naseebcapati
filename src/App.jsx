@@ -1,4 +1,4 @@
-import { Component, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, Suspense, createContext, lazy, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, LazyMotion, domAnimation, m as motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
@@ -7,14 +7,18 @@ import AdminApp from './admin/AdminApp';
 import { submitEnquiry, submitReservation } from './lib/supabase';
 import { MotionCard, MotionGroup, MotionImage, MotionPage, MotionReveal, buttonTransition, drawerTransition, headerVariants, itemVariants, motionSpring, staggerVariants } from './motion';
 
+const TeamPage = lazy(() => import('./team/TeamPages').then((module) => ({ default: module.TeamPage })));
+const TeamProfilePage = lazy(() => import('./team/TeamPages').then((module) => ({ default: module.TeamProfilePage })));
+
 const navItems = [
-  { label: 'Home', href: '/' }, { label: 'Menu', href: '/menu' }, { label: 'About Us', href: '/about' }, { label: 'Branches', href: '/branches' }, { label: 'Gallery', href: '/gallery' }, { label: 'Promotions', href: '/promotions' }, { label: 'Contact', href: '/contact' },
+  { label: 'Home', href: '/' }, { label: 'Menu', href: '/menu' }, { label: 'About Us', href: '/about' }, { label: 'Our Team', href: '/our-team' }, { label: 'Gallery', href: '/gallery' }, { label: 'Branches', href: '/branches' }, { label: 'Promotions', href: '/promotions' }, { label: 'Contact', href: '/contact' },
 ];
 
 const routeMeta = {
   '/': ['Naseeb Chapati Restaurant | Authentic Flavours, Freshly Served', 'Authentic Pakistani favourites, fresh chapati, naan, biryani, grills, and family meals across Johor.'],
   '/menu': ['Full Menu | Naseeb Chapati Restaurant', 'Search the Naseeb Chapati menu by dish, category, spice level, vegetarian options, and branch availability.'],
   '/about': ['About Us | Naseeb Chapati Restaurant', 'Discover the warm, family-first story behind Naseeb Chapati Restaurant.'],
+  '/our-team': ['Our Team | Naseeb Chapati Restaurant', 'Meet the leadership team behind Naseeb Chapati Restaurant and its commitment to authentic Pakistani cuisine.'],
   '/branches': ['Branches | Naseeb Chapati Restaurant', 'Find Naseeb Chapati branches, independent opening hours, contact details, and directions.'],
   '/gallery': ['Gallery | Naseeb Chapati Restaurant', 'A visual taste of Naseeb Chapati food, interiors, preparation, and family dining.'],
   '/promotions': ['Promotions | Naseeb Chapati Restaurant', 'See current Naseeb Chapati offers and branch-specific promotions.'],
@@ -30,6 +34,7 @@ function getBranchFromPath(path) {
 function getPageMeta(path) {
   const branch = getBranchFromPath(path);
   if (branch) return [`${branch.name} Branch | Naseeb Chapati Restaurant`, `Visit Naseeb Chapati ${branch.name} for Pakistani favourites, branch-specific opening hours, directions, and ordering options.`];
+  if (path.startsWith('/our-team/')) return ['Leadership Profile | Naseeb Chapati Restaurant', 'Meet a member of the Naseeb Chapati Restaurant leadership team.'];
   return routeMeta[path] || ['Naseeb Chapati Restaurant', routeMeta['/'][1]];
 }
 
@@ -490,6 +495,10 @@ function ContactPageDynamic() {
 
 function NotFoundPage() { return <section className="not-found"><div><span className="eyebrow">404</span><h1>That page took a wrong turn.</h1><p>Let’s get you back to the food.</p><Button href="/" variant="primary" icon={Home}>Back home</Button></div></section>; }
 
+function TeamRouteLoader() {
+  return <section aria-label="Loading team page" style={{ display: 'grid', placeItems: 'center', minHeight: '72vh', padding: 32, background: '#f7f8f6', color: '#1f4d3a' }}><div style={{ display: 'grid', justifyItems: 'center', gap: 14 }}><span style={{ width: 46, height: 46, border: '3px solid #dce6df', borderTopColor: '#1f4d3a', borderRadius: '50%' }} /><strong>Loading our team...</strong></div></section>;
+}
+
 class AdminErrorBoundary extends Component {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
@@ -508,6 +517,8 @@ function App() {
   if (path === '/') page = <HomePage />;
   else if (path === '/menu') page = <MenuPage />;
   else if (path === '/about') page = <AboutPage />;
+  else if (path === '/our-team') page = <Suspense fallback={<TeamRouteLoader />}><TeamPage /></Suspense>;
+  else if (path.startsWith('/our-team/')) page = <Suspense fallback={<TeamRouteLoader />}><TeamProfilePage slug={path.split('/')[2]} /></Suspense>;
   else if (path === '/branches') page = <BranchesPage />;
   else if (path === '/gallery') page = <GalleryPage />;
   else if (path === '/promotions') page = <PromotionsPage />;

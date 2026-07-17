@@ -349,3 +349,86 @@ drop policy if exists "Authenticated admins can update leave" on public.naseeb_l
 create policy "Authenticated admins can update leave" on public.naseeb_leave_requests for update to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
 drop policy if exists "Authenticated admins can delete leave" on public.naseeb_leave_requests;
 create policy "Authenticated admins can delete leave" on public.naseeb_leave_requests for delete to authenticated using (auth.uid() is not null);
+
+-- Public leadership profiles managed by the Team Members CMS.
+create table if not exists public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null check (char_length(trim(full_name)) between 2 and 160),
+  slug text not null unique check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
+  position text not null check (char_length(trim(position)) between 2 and 160),
+  department text,
+  short_intro text,
+  biography text,
+  vision text,
+  quote text,
+  experience text,
+  qualification text,
+  profile_image text,
+  cover_image text,
+  email text,
+  phone text,
+  whatsapp text,
+  linkedin text,
+  facebook text,
+  instagram text,
+  website text,
+  featured boolean not null default false,
+  display_order integer not null default 0 check (display_order >= 0),
+  status text not null default 'Draft' check (status in ('Draft', 'Published', 'Archived')),
+  seo_title text,
+  seo_description text,
+  meta_image text,
+  image_alt text,
+  gallery_images jsonb not null default '[]'::jsonb check (jsonb_typeof(gallery_images) = 'array'),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+drop trigger if exists team_members_updated_at on public.team_members;
+create trigger team_members_updated_at
+before update on public.team_members
+for each row execute function public.naseeb_set_updated_at();
+
+create index if not exists team_members_status_order_idx
+on public.team_members (status, featured desc, display_order, full_name);
+
+create index if not exists team_members_published_order_idx
+on public.team_members (featured desc, display_order, full_name)
+where status = 'Published';
+
+create index if not exists team_members_department_idx
+on public.team_members (department)
+where department is not null;
+
+alter table public.team_members enable row level security;
+
+drop policy if exists "Public can read published team members" on public.team_members;
+create policy "Public can read published team members"
+on public.team_members for select
+to anon
+using (status = 'Published');
+
+drop policy if exists "Authenticated admins can read team members" on public.team_members;
+create policy "Authenticated admins can read team members"
+on public.team_members for select
+to authenticated
+using (auth.uid() is not null);
+
+drop policy if exists "Authenticated admins can insert team members" on public.team_members;
+create policy "Authenticated admins can insert team members"
+on public.team_members for insert
+to authenticated
+with check (auth.uid() is not null);
+
+drop policy if exists "Authenticated admins can update team members" on public.team_members;
+create policy "Authenticated admins can update team members"
+on public.team_members for update
+to authenticated
+using (auth.uid() is not null)
+with check (auth.uid() is not null);
+
+drop policy if exists "Authenticated admins can delete team members" on public.team_members;
+create policy "Authenticated admins can delete team members"
+on public.team_members for delete
+to authenticated
+using (auth.uid() is not null);
