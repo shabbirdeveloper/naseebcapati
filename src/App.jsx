@@ -389,8 +389,48 @@ function AboutBand() {
   return <section className="about-band"><div className="container about-band-grid"><MotionImage className="about-band-image"><img src={homepageContent.aboutImage || imageUrls.interior} alt="Warm Naseeb Chapati dining room with family tables" loading="lazy" /></MotionImage><MotionReveal className="about-band-copy" y={18}><p className="eyebrow">About Naseeb Chapati</p><h2>{homepageContent.aboutHeading}</h2><p>{homepageContent.aboutText}</p><div className="value-list"><span><BadgeCheck size={18} />Fresh, made-to-order plates</span><span><BadgeCheck size={18} />Authentic recipes and spices</span><span><BadgeCheck size={18} />A welcoming family dining experience</span></div><Button href={homepageContent.aboutButtonUrl || '/about'} variant="primary" icon={ArrowUpRight}>{homepageContent.aboutButtonLabel || 'Learn more about us'}</Button></MotionReveal></div></section>;
 }
 
+const dishCardVariants = {
+  hidden: { opacity: 0, y: 26, scale: .975 },
+  show: (index) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { ...motionSpring, delay: Math.min(index, 8) * .045 },
+  }),
+};
+
 function DishCard({ item, onDetails, index = 0 }) {
-  return <MotionCard as="article" className="dish-card" index={index} layout="position" exit={{ opacity: 0, y: 10 }}><div className="dish-card-image"><SafeImage src={item.image} alt={item.name} loading="lazy" /><span className="food-badge">{item.badge}</span></div><div className="dish-card-content"><span className="food-category">{item.category}</span><h3>{item.name}</h3><p>{item.description}</p><div className="dish-card-footer"><strong>{formatPrice(item.price)}</strong><div><button className="link-button" onClick={() => onDetails?.(item)}>Details <ArrowUpRight size={14} /></button><CartAddButton item={item} /></div></div></div></MotionCard>;
+  const reduceMotion = useReducedMotion();
+  return <motion.article
+    className="dish-card"
+    custom={index}
+    variants={dishCardVariants}
+    initial={reduceMotion ? false : 'hidden'}
+    whileInView={reduceMotion ? undefined : 'show'}
+    viewport={{ once: true, amount: .12 }}
+    whileHover={reduceMotion ? undefined : { y: -9 }}
+    whileTap={reduceMotion ? undefined : { scale: .992 }}
+    transition={motionSpring}
+    layout="position"
+    exit={{ opacity: 0, y: 12, scale: .98 }}
+  >
+    <div className="dish-card-image">
+      <SafeImage src={item.image} alt={item.name} loading="lazy" />
+      <span className="food-badge">{item.badge}</span>
+      <button className="dish-card-quick-view" type="button" onClick={() => onDetails?.(item)} aria-label={`View ${item.name} details`}><ArrowUpRight size={17} /></button>
+    </div>
+    <div className="dish-card-content">
+      <div className="dish-card-copy">
+        <span className="food-category">{item.category}</span>
+        <h3>{item.name}</h3>
+        <p>{item.description}</p>
+      </div>
+      <div className="dish-card-footer">
+        <div className="dish-card-price"><span>Price</span><strong>{formatPrice(item.price)}</strong></div>
+        <div className="dish-card-actions"><button className="link-button dish-details-button" type="button" onClick={() => onDetails?.(item)}>Details <ArrowUpRight size={14} /></button><CartAddButton item={item} /></div>
+      </div>
+    </div>
+  </motion.article>;
 }
 
 function BestSellers() {
