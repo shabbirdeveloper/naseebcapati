@@ -182,8 +182,10 @@ p { line-height: 1.65; }
 @keyframes team-home-shimmer { to { background-position: -220% 0; } }
 .about-band { padding: 105px 0; background: var(--sand); }
 .about-band-grid { display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: clamp(42px, 7vw, 100px); }
-.about-band-image { overflow: hidden; border-radius: 18px 88px 18px 18px; box-shadow: var(--shadow); }
-.about-band-image img { width: 100%; aspect-ratio: 1.35; object-fit: cover; }
+.about-band-image { position: relative; width: min(100%, 470px); aspect-ratio: 5 / 6; justify-self: center; isolation: isolate; }
+.about-band-image::before { position: absolute; inset: 24px -20px -20px 24px; z-index: -1; border: 1px solid rgba(31,77,58,.2); border-radius: 28px; background: linear-gradient(145deg, var(--maroon-dark), var(--maroon)); box-shadow: 0 22px 50px rgba(18,56,43,.16); content: ''; }
+.about-band-image img { width: 100%; height: 100%; border: 8px solid var(--white); border-radius: 28px; background: var(--soft-white); box-shadow: var(--shadow); object-fit: cover; transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s ease; }
+.about-band-image:hover img { box-shadow: 0 26px 58px rgba(18,56,43,.18); transform: scale(1.015); }
 .about-band-copy { max-width: 530px; }
 .about-band-copy h2, .commitment-copy h2 { margin-bottom: 17px; font-size: clamp(32px, 4vw, 52px); line-height: 1.04; }
 .about-band-copy > p:not(.eyebrow) { margin-bottom: 22px; color: #5f5a57; }
@@ -509,6 +511,7 @@ textarea { resize: vertical; }
   .home-team-empty { align-items: flex-start; flex-wrap: wrap; }
   .home-team-empty .button { margin-left: 72px; }
   .about-band-grid, .story-grid, .commitment-grid, .reservation-grid, .review-wrap, .contact-grid { grid-template-columns: 1fr; gap: 42px; }
+  .about-band-image { width: min(100% - 20px, 640px); aspect-ratio: 16 / 10; }
   .about-band-copy, .story-copy, .commitment-copy, .reservation-copy { max-width: none; }
   .featured-branch { grid-template-columns: 1fr; }
   .featured-branch-map { min-height: 330px; }
@@ -559,7 +562,9 @@ textarea { resize: vertical; }
   .home-team-empty > div { margin-right: 0; }
   .home-team-empty .button { width: 100%; margin-left: 0; }
   .about-band { padding: 67px 0; }
-  .about-band-image { border-radius: 15px 60px 15px 15px; }
+  .about-band-image { width: calc(100% - 16px); aspect-ratio: 4 / 3; }
+  .about-band-image::before { inset: 14px -10px -10px 14px; border-radius: 21px; }
+  .about-band-image img { border-width: 6px; border-radius: 21px; }
   .dish-grid, .menu-grid, .promotion-grid, .branch-directory-grid, .value-grid { grid-template-columns: 1fr; }
   .promotion-card:last-child { grid-column: auto; }
   .dish-card-image { height: 206px; }
