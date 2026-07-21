@@ -55,9 +55,11 @@ const defaultHomepageContent = {
   trendingAutoplay: true,
   trendingSpeed: 4500,
   trendingEffect: true,
+  aboutEyebrow: 'About Naseeb Chapati',
   aboutHeading: 'Food that brings people closer.',
   aboutText: 'From traditional recipes to modern favourites, Naseeb Chapati brings the true taste of Pakistan to Malaysia. Our table is made for generous portions, easy conversation, and the comfort of a meal served with care.',
   aboutImage: imageUrls.interior,
+  aboutImageAlt: 'Naseeb Chapati restaurant dining atmosphere',
   aboutButtonLabel: 'Learn more about us',
   aboutButtonUrl: '/about',
   bestSellingTitle: 'Best-selling dishes',
@@ -220,10 +222,10 @@ export const galleryItems = persistedGalleryItems.length ? persistedGalleryItems
 ];
 
 export const socialLinks = persistedAdminState?.social?.length ? persistedAdminState.social.filter((item) => item.status !== 'Inactive' && item.status !== 'Archived') : [
-  { label: 'Facebook', href: 'https://www.facebook.com/', className: 'facebook' },
-  { label: 'Instagram', href: 'https://www.instagram.com/', className: 'instagram' },
-  { label: 'TikTok', href: 'https://www.tiktok.com/', className: 'tiktok' },
-  { label: 'Google Business', href: 'https://www.google.com/maps/search/?api=1&query=Naseeb+Capati+Nan+Malaysia', className: 'google' },
+  { label: 'Facebook', href: 'https://www.facebook.com/', className: 'facebook', username: 'Naseeb Chapati', description: 'Follow our page for restaurant news, promotions, and daily updates.', ctaLabel: 'Like page' },
+  { label: 'Instagram', href: 'https://www.instagram.com/', className: 'instagram', username: 'Naseeb Chapati', description: 'Explore fresh dishes, restaurant moments, and food photography.', ctaLabel: 'Follow us' },
+  { label: 'TikTok', href: 'https://www.tiktok.com/', className: 'tiktok', username: 'Naseeb Chapati', description: 'Watch our latest food videos, kitchen moments, and behind-the-scenes stories.', ctaLabel: 'Watch now' },
+  { label: 'Google Business', href: 'https://www.google.com/maps/search/?api=1&query=Naseeb+Capati+Nan+Malaysia', className: 'google', username: 'Google Reviews', description: 'Read guest feedback and leave your own review for Naseeb Chapati.', ctaLabel: 'Write a review' },
 ];
 
 export const servicesContent = normalizeServicesContent(
