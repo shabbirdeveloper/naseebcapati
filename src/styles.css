@@ -155,6 +155,8 @@ p { line-height: 1.65; }
 .category-card img { width: 100%; height: 100%; min-height: 174px; object-fit: cover; transition: transform .45s ease; }
 .category-card:hover img { transform: scale(1.06); }
 .category-card-overlay { position: absolute; right: 12px; bottom: 12px; left: 12px; z-index: 1; display: flex; align-items: end; justify-content: space-between; gap: 8px; color: var(--white); font-family: Montserrat, sans-serif; font-size: 13px; font-weight: 700; line-height: 1.1; }
+.category-card-label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.category-card-label i { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.32); border-radius: 9px; background: rgba(18,56,43,.76); color: var(--white); backdrop-filter: blur(6px); }
 .home-team-section { background: var(--white); }
 .home-team-content { min-height: 290px; }
 .home-team-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }

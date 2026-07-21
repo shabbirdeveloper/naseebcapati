@@ -208,6 +208,8 @@
 .admin-table input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--admin-green); }
 .admin-table-primary { display: flex; align-items: center; gap: 9px; min-width: 190px; }
 .admin-table-primary img { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 7px; object-fit: cover; background: var(--admin-soft); }
+.admin-category-table-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 9px; background: rgba(31,77,58,.1); color: var(--admin-green); }
+.admin-order-number { display: inline-grid; place-items: center; min-width: 29px; height: 29px; padding: 0 8px; border-radius: 8px; background: var(--admin-soft); color: var(--admin-green-dark); font-weight: 800; }
 .admin-table-primary > span:not(.admin-avatar) { display: grid; gap: 4px; min-width: 0; }
 .admin-table-primary strong { overflow: hidden; color: var(--admin-black); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .admin-table-primary small { overflow: hidden; max-width: 260px; color: var(--admin-muted); font-size: 8px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
@@ -285,6 +287,14 @@
 .admin-drawer-fields label { gap: 6px; }
 .admin-drawer-fields textarea { resize: vertical; }
 .admin-drawer-checks { display: grid; gap: 10px; padding: 15px 0; border-block: 1px solid var(--admin-border); }
+.admin-category-icon-picker { grid-column: 1 / -1; padding: 0; border: 0; }
+.admin-category-icon-picker legend { margin-bottom: 8px; color: var(--admin-black); font-size: 10px; font-weight: 800; }
+.admin-category-icon-picker > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.admin-category-icon-picker button { display: flex; align-items: center; gap: 7px; min-width: 0; min-height: 42px; padding: 8px 9px; border: 1px solid var(--admin-border); border-radius: 9px; background: var(--admin-white); color: var(--admin-muted); font-size: 9px; font-weight: 700; text-align: left; transition: border-color .2s, background .2s, color .2s, box-shadow .2s, transform .2s; }
+.admin-category-icon-picker button:hover { border-color: rgba(31,77,58,.45); color: var(--admin-green); transform: translateY(-1px); }
+.admin-category-icon-picker button.active { border-color: var(--admin-green); background: rgba(31,77,58,.08); color: var(--admin-green-dark); box-shadow: 0 0 0 2px rgba(31,77,58,.08); }
+.admin-category-icon-picker button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-category-icon-picker small { display: block; margin-top: 8px; color: var(--admin-muted); font-size: 9px; line-height: 1.45; }
 .admin-hours-editor { display: grid; gap: 10px; padding: 15px 0; border-block: 1px solid var(--admin-border); }
 .admin-hours-editor > div:first-child { display: grid; gap: 4px; margin-bottom: 2px; }
 .admin-hours-editor > div:first-child strong { color: var(--admin-black); font-size: 11px; }

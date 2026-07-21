@@ -216,6 +216,11 @@ function normalizeAdminState(state) {
       ? value.filter((item) => item && typeof item === 'object' && !Array.isArray(item))
       : seed[key];
   });
+  normalized.categories = normalized.categories.map((category, index) => ({
+    ...category,
+    icon: category.icon || 'utensils',
+    order: Number.isFinite(Number(category.order)) && Number(category.order) > 0 ? Number(category.order) : index + 1,
+  }));
   ['user', 'settings'].forEach((key) => {
     const value = incoming[key];
     normalized[key] = value && typeof value === 'object' && !Array.isArray(value) ? value : seed[key];

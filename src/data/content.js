@@ -89,7 +89,7 @@ export const heroSlides = configuredHeroSlides.length ? configuredHeroSlides : [
   { id: 'hero-grill', heading: 'Warm plates. Big flavour.', text: 'From tandoori grills to comforting drinks and desserts, find something everyone at the table will enjoy.', desktopImage: imageUrls.grill, mobileImage: imageUrls.grill, primaryButtonLabel: 'View Menu', primaryButtonUrl: '/menu', secondaryButtonLabel: 'Order Now', secondaryButtonUrl: 'https://www.foodpanda.my/chain/cx8vw/naseeb-capati-nan' },
 ];
 
-export const menuCategories = persistedAdminState?.categories?.length ? persistedAdminState.categories.filter((item) => item.status !== 'Archived' && item.status !== 'Inactive') : [
+const fallbackMenuCategories = [
   { name: 'Chapati and Bread', image: imageUrls.naan, icon: 'bread' },
   { name: 'Breakfast', image: imageUrls.family, icon: 'sunrise' },
   { name: 'Chicken Dishes', image: imageUrls.grill, icon: 'drumstick' },
@@ -103,6 +103,16 @@ export const menuCategories = persistedAdminState?.categories?.length ? persiste
   { name: 'Cold Drinks', image: imageUrls.drinks, icon: 'glass' },
   { name: 'Desserts', image: imageUrls.dessert, icon: 'cake' },
 ];
+
+export const menuCategories = (persistedAdminState?.categories?.length
+  ? persistedAdminState.categories.filter((item) => item.status !== 'Archived' && item.status !== 'Inactive')
+  : fallbackMenuCategories)
+  .map((category, index) => ({
+    ...category,
+    icon: category.icon || 'utensils',
+    order: Number.isFinite(Number(category.order)) && Number(category.order) > 0 ? Number(category.order) : index + 1,
+  }))
+  .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
 
 // Public reference menu seed. Confirm final prices, ingredients, and availability with the restaurant before launch.
 export const menuItems = persistedAdminState?.menuItems?.length ? persistedAdminState.menuItems.filter((item) => ['Published', 'Active', undefined].includes(item.status) && item.status !== 'Archived' && item.status !== 'Inactive') : [

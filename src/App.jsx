@@ -4,6 +4,7 @@ import { AnimatePresence, LazyMotion, domAnimation, m as motion, useReducedMotio
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
 import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, servicesContent, socialLinks } from './data/content';
+import { CategoryIcon } from './categoryIcons';
 import AdminApp from './admin/AdminApp';
 import { listPublishedTeamMembers, submitEnquiry, submitReservation } from './lib/supabase';
 import { MotionCard, MotionGroup, MotionImage, MotionPage, MotionReveal, buttonTransition, drawerTransition, headerVariants, itemVariants, motionSpring, staggerVariants } from './motion';
@@ -358,7 +359,7 @@ function FoodCoverflow() {
 }
 
 function CategoryGrid() {
-  return <section className="section categories-section"><div className="container"><SectionHeading title="Browse by category" copy="Whatever the craving, there’s something warm, flavourful, and made to share." action={<Button href="/menu" variant="outline" icon={ArrowUpRight}>Explore all</Button>} /><MotionGroup className="category-grid" amount={.12}>{menuCategories.map((category, index) => <MotionCard as="a" className="category-card" href="/menu" key={category.name} index={index} onClick={(event) => { event.preventDefault(); navigateTo('/menu'); }}><img src={category.image} alt={category.name} loading="lazy" /><div className="category-card-overlay"><span>{category.name}</span><ArrowUpRight size={17} /></div></MotionCard>)}</MotionGroup></div></section>;
+  return <section className="section categories-section"><div className="container"><SectionHeading title="Browse by category" copy="Whatever the craving, there’s something warm, flavourful, and made to share." action={<Button href="/menu" variant="outline" icon={ArrowUpRight}>Explore all</Button>} /><MotionGroup className="category-grid" amount={.12}>{menuCategories.map((category, index) => <MotionCard as="a" className="category-card" href="/menu" key={category.name} index={index} onClick={(event) => { event.preventDefault(); navigateTo('/menu'); }}><img src={category.image} alt={category.name} loading="lazy" /><div className="category-card-overlay"><span className="category-card-label"><i><CategoryIcon name={category.icon} size={15} /></i>{category.name}</span><ArrowUpRight size={17} /></div></MotionCard>)}</MotionGroup></div></section>;
 }
 
 function HomeTeamSection() {
