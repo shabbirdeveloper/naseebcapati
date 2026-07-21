@@ -20,6 +20,13 @@ export const imageUrls = {
   kitchen: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=900&q=82',
 };
 
+export const defaultHomepageStats = [
+  { id: 'years', value: '2+', label: 'Years of Excellence' },
+  { id: 'menu-items', value: '60+', label: 'Menu Items' },
+  { id: 'customers', value: '15k+', label: 'Happy Customers' },
+  { id: 'services', value: '4+', label: 'Event Services' },
+];
+
 const defaultHomepageContent = {
   heroHeading: 'Authentic Flavours, Freshly Served',
   heroText: 'Enjoy freshly prepared Pakistani favourites, delicious chapati, flavourful curries, biryani, grills, drinks, and family meals at Naseeb Chapati.',
@@ -40,7 +47,9 @@ const defaultHomepageContent = {
     { icon: 'branches', title: 'Multiple branches', description: 'Find a location nearby' },
     { icon: 'order', title: 'Online ordering', description: 'Order ahead with ease' },
   ],
-  trendingTitle: 'Trending now',
+  stats: defaultHomepageStats,
+  signatureLabel: 'Naseeb Signature Dishes',
+  trendingTitle: 'Naseeb Signature Dishes',
   trendingSubtitle: 'The favourites our guests come back for, served warm and full of flavour.',
   featuredItems: [],
   trendingAutoplay: true,
@@ -60,7 +69,14 @@ const defaultHomepageContent = {
   showReviews: true,
 };
 
-export const homepageContent = { ...defaultHomepageContent, ...(persistedAdminState?.homepage || {}) };
+const persistedHomepageContent = persistedAdminState?.homepage || {};
+export const homepageContent = {
+  ...defaultHomepageContent,
+  ...persistedHomepageContent,
+  trendingTitle: persistedHomepageContent.trendingTitle === 'Trending now'
+    ? defaultHomepageContent.signatureLabel
+    : persistedHomepageContent.trendingTitle || persistedHomepageContent.signatureLabel || defaultHomepageContent.signatureLabel,
+};
 
 export function normalizeHeroSlides(value) {
   let slides = value;
@@ -115,7 +131,7 @@ export const menuCategories = (persistedAdminState?.categories?.length
   .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
 
 // Public reference menu seed. Confirm final prices, ingredients, and availability with the restaurant before launch.
-export const menuItems = persistedAdminState?.menuItems?.length ? persistedAdminState.menuItems.filter((item) => ['Published', 'Active', undefined].includes(item.status) && item.status !== 'Archived' && item.status !== 'Inactive') : [
+const fallbackMenuItems = [
   { id: 'nan-cheese-mozzarella-kimah', name: 'Nan Cheese Mozzarella Kimah', category: 'Chapati and Bread', filter: 'Main Course', description: 'Warm naan with stretchy mozzarella and seasoned minced meat.', ingredients: 'Naan, mozzarella cheese, minced meat, herbs.', price: 21, image: imageUrls.naan, badge: 'Best Seller', spicy: false, vegetarian: false, availability: ['Pasir Gudang', 'Ayer Hitam'], popular: 98 },
   { id: 'chapati-kimah', name: 'Chapati Kimah', category: 'Chapati and Bread', filter: 'Main Course', description: 'Soft chapati served with a fragrant minced-meat kimah.', ingredients: 'Chapati, minced meat, onion, spices.', price: 11, image: imageUrls.naan, badge: 'Popular', spicy: true, vegetarian: false, availability: ['Pasir Gudang', 'Ayer Hitam'], popular: 94 },
   { id: 'ayam-tandoori', name: 'Ayam Tandoori', category: 'Tandoori and Grill', filter: 'Grill', description: 'Charred tandoori chicken with warm spices and a smoky finish.', ingredients: 'Chicken, yoghurt, tandoori spices, lemon.', price: 12, image: imageUrls.grill, badge: 'Chef’s Choice', spicy: true, vegetarian: false, availability: ['Pasir Gudang', 'Ayer Hitam', 'Angsana JB Mall'], popular: 96 },
@@ -129,6 +145,16 @@ export const menuItems = persistedAdminState?.menuItems?.length ? persistedAdmin
   { id: 'carrot-susu', name: 'Carrot Susu', category: 'Cold Drinks', filter: 'Drinks', description: 'Fresh carrot juice blended with milk for a creamy finish.', ingredients: 'Carrot, milk.', price: 11, image: imageUrls.drinks, badge: 'Fresh', spicy: false, vegetarian: true, availability: ['Pasir Gudang'], popular: 71 },
   { id: 'horlicks', name: 'Horlicks', category: 'Hot Drinks', filter: 'Drinks', description: 'A warm, malted drink for an easy finish to any meal.', ingredients: 'Malted drink mix, milk.', price: null, image: imageUrls.drinks, badge: 'Family Favourite', spicy: false, vegetarian: true, availability: ['Pasir Gudang'], popular: 67 },
 ];
+
+export const menuItems = (persistedAdminState?.menuItems?.length
+  ? persistedAdminState.menuItems.filter((item) => ['Published', 'Active', undefined].includes(item.status) && item.status !== 'Archived' && item.status !== 'Inactive')
+  : fallbackMenuItems)
+  .map((item, index) => ({
+    ...item,
+    order: Number.isFinite(Number(item.order)) && Number(item.order) > 0 ? Number(item.order) : index + 1,
+    availability: Array.isArray(item.availability) ? item.availability : (Array.isArray(item.branchAvailability) ? item.branchAvailability : []),
+  }))
+  .sort((a, b) => a.order - b.order || String(a.name || '').localeCompare(String(b.name || '')));
 
 export const branches = persistedAdminState?.branches?.length ? persistedAdminState.branches.filter((item) => item.status !== 'Archived' && item.status !== 'Inactive') : [
   {

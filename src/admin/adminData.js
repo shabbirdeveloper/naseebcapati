@@ -1,6 +1,7 @@
 import {
   branches as publicBranches,
   contactInfo,
+  defaultHomepageStats,
   galleryItems as publicGallery,
   menuCategories as publicCategories,
   menuItems as publicMenuItems,
@@ -32,6 +33,7 @@ const makeSeedState = () => ({
   user: { name: 'Admin User', email: 'naseebchapatinanpg@gmail.com', role: 'super_admin', avatar: 'AU' },
   menuItems: publicMenuItems.map((item, index) => ({
     ...item,
+    order: index + 1,
     slug: item.id,
     status: statusFor(index),
     featured: index < 4,
@@ -147,7 +149,9 @@ const makeSeedState = () => ({
       { icon: 'branches', title: 'Multiple branches', description: 'Find a location nearby' },
       { icon: 'order', title: 'Online ordering', description: 'Order ahead with ease' },
     ],
-    trendingTitle: 'Trending now',
+    stats: defaultHomepageStats.map((item) => ({ ...item })),
+    signatureLabel: 'Naseeb Signature Dishes',
+    trendingTitle: 'Naseeb Signature Dishes',
     trendingSubtitle: 'The favourites our guests come back for, served warm and full of flavour.',
     featuredItems: publicMenuItems.slice(0, 7).map((item) => item.id),
     trendingAutoplay: true,
@@ -221,12 +225,27 @@ function normalizeAdminState(state) {
     icon: category.icon || 'utensils',
     order: Number.isFinite(Number(category.order)) && Number(category.order) > 0 ? Number(category.order) : index + 1,
   }));
+  normalized.menuItems = normalized.menuItems.map((item, index) => ({
+    ...item,
+    order: Number.isFinite(Number(item.order)) && Number(item.order) > 0 ? Number(item.order) : index + 1,
+  }));
   ['user', 'settings'].forEach((key) => {
     const value = incoming[key];
     normalized[key] = value && typeof value === 'object' && !Array.isArray(value) ? value : seed[key];
   });
   const featuredItems = incomingHomepage.featuredItems;
   normalized.homepage.featuredItems = Array.isArray(featuredItems) ? featuredItems.filter((item) => typeof item === 'string') : seed.homepage.featuredItems;
+  if (!normalized.homepage.trendingTitle || normalized.homepage.trendingTitle === 'Trending now') {
+    normalized.homepage.trendingTitle = seed.homepage.trendingTitle;
+  }
+  const stats = incomingHomepage.stats;
+  normalized.homepage.stats = Array.isArray(stats) && stats.length
+    ? stats.filter((item) => item && typeof item === 'object' && !Array.isArray(item)).map((item, index) => ({
+      id: typeof item.id === 'string' && item.id ? item.id : `stat-${index + 1}`,
+      value: String(item.value ?? ''),
+      label: String(item.label ?? ''),
+    }))
+    : seed.homepage.stats;
   return normalized;
 }
 

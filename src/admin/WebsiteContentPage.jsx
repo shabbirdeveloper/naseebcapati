@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowUpRight, ChevronDown, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
-import { heroSlides as defaultHeroSlides, normalizeHeroSlides } from '../data/content';
+import { defaultHomepageStats, heroSlides as defaultHeroSlides, normalizeHeroSlides } from '../data/content';
 import { isSupabaseConfigured, uploadMediaFile } from '../lib/supabase';
 
 const normalizeSlides = (slides) => {
@@ -14,6 +14,15 @@ const normalizeSlides = (slides) => {
   }));
 };
 
+const normalizeStats = (stats) => {
+  const source = Array.isArray(stats) && stats.length ? stats : defaultHomepageStats;
+  return source.map((item, index) => ({
+    id: item.id || `stat-${index + 1}`,
+    value: String(item.value ?? ''),
+    label: String(item.label ?? ''),
+  }));
+};
+
 const fileToDataUrl = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = () => resolve(reader.result);
@@ -24,12 +33,21 @@ const fileToDataUrl = (file) => new Promise((resolve, reject) => {
 function WebsiteContentPage({ state, commit, notify }) {
   const homepage = state.homepage || {};
   const [uploadingHero, setUploadingHero] = useState('');
-  const [draft, setDraft] = useState(() => ({ ...homepage, heroSlides: normalizeSlides(homepage.heroSlides) }));
+  const [draft, setDraft] = useState(() => ({
+    ...homepage,
+    heroSlides: normalizeSlides(homepage.heroSlides),
+    stats: normalizeStats(homepage.stats),
+    signatureLabel: homepage.signatureLabel || 'Naseeb Signature Dishes',
+  }));
 
   const update = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
   const updateHeroSlide = (id, changes) => setDraft((current) => ({
     ...current,
     heroSlides: current.heroSlides.map((slide) => slide.id === id ? { ...slide, ...changes } : slide),
+  }));
+  const updateStat = (id, key, value) => setDraft((current) => ({
+    ...current,
+    stats: current.stats.map((item) => item.id === id ? { ...item, [key]: value } : item),
   }));
   const addHeroSlide = () => setDraft((current) => ({
     ...current,
@@ -89,7 +107,7 @@ function WebsiteContentPage({ state, commit, notify }) {
       notify('Keep at least one active hero slide with a desktop image.');
       return;
     }
-    commit({ homepage: { ...draft, heroSlides: slides } });
+    commit({ homepage: { ...draft, stats: normalizeStats(draft.stats), heroSlides: slides } });
     notify('Homepage content and hero slides published successfully.');
   };
 
@@ -98,6 +116,7 @@ function WebsiteContentPage({ state, commit, notify }) {
     <div className="admin-panel admin-form-panel admin-hero-slides-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Hero carousel images</span><h2>Manage every homepage slide</h2><p>Upload separate desktop and mobile images. Changes publish when you save homepage content.</p></div><button className="admin-primary-button" type="button" onClick={addHeroSlide}><Plus size={15} />Add slide</button></div><div className="admin-hero-slide-list">{draft.heroSlides.map((slide, index) => <article className="admin-hero-slide-card" key={slide.id}><div className="admin-hero-slide-card-head"><div><span className="admin-panel-kicker">Slide {index + 1}</span><strong>{slide.heading || 'Untitled slide'}</strong></div><div className="admin-hero-slide-actions"><button className="admin-icon-button small" type="button" aria-label={`Move slide ${index + 1} up`} title="Move up" onClick={() => moveHeroSlide(slide.id, -1)} disabled={index === 0}><ChevronDown className="admin-chevron-up" size={15} /></button><button className="admin-icon-button small" type="button" aria-label={`Move slide ${index + 1} down`} title="Move down" onClick={() => moveHeroSlide(slide.id, 1)} disabled={index === draft.heroSlides.length - 1}><ChevronDown size={15} /></button><button className="admin-icon-button small admin-media-delete" type="button" aria-label={`Remove slide ${index + 1}`} title="Remove slide" onClick={() => removeHeroSlide(slide.id)} disabled={draft.heroSlides.length <= 1}><Trash2 size={15} /></button></div></div><div className="admin-hero-slide-layout"><div className="admin-hero-slide-media"><img src={slide.desktopImage || '/naseeb-chapati-logo.png'} alt={slide.imageAlt || ''} /><div className="admin-hero-upload-grid"><label className="admin-outline-button admin-hero-upload-button">Desktop image<input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={(event) => uploadHeroImage(event, slide.id, 'desktopImage')} disabled={Boolean(uploadingHero)} /></label><label className="admin-outline-button admin-hero-upload-button">Mobile image<input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={(event) => uploadHeroImage(event, slide.id, 'mobileImage')} disabled={Boolean(uploadingHero)} /></label></div>{uploadingHero && <small className="admin-hero-uploading">Uploading hero image…</small>}</div><div className="admin-form admin-editor-form"><label>Slide heading<input value={slide.heading || ''} onChange={(event) => updateHeroSlide(slide.id, { heading: event.target.value })} /></label><label>Slide text<textarea rows="3" value={slide.text || ''} onChange={(event) => updateHeroSlide(slide.id, { text: event.target.value })} /></label><label>Image alt text<input value={slide.imageAlt || ''} onChange={(event) => updateHeroSlide(slide.id, { imageAlt: event.target.value })} placeholder="Describe the food image" /></label><label>Desktop image URL<input value={slide.desktopImage || ''} onChange={(event) => updateHeroSlide(slide.id, { desktopImage: event.target.value })} placeholder="Upload an image or paste a URL" /></label><label>Mobile image URL<input value={slide.mobileImage || ''} onChange={(event) => updateHeroSlide(slide.id, { mobileImage: event.target.value })} placeholder="Optional mobile crop URL" /></label></div></div><label className="admin-switch-row admin-hero-active-row"><input type="checkbox" checked={slide.active !== false} onChange={(event) => updateHeroSlide(slide.id, { active: event.target.checked })} /><span className="admin-switch" /><span>{slide.active !== false ? 'Published on homepage' : 'Hidden from homepage'}</span></label></article>)}</div></div>
     <div className="admin-panel admin-form-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Trending menu</span><h2>Section controls</h2></div><span className="admin-status positive"><i />Published</span></div><div className="admin-form admin-editor-form"><div className="admin-two-col"><label>Section title<input value={draft.trendingTitle || ''} onChange={(event) => update('trendingTitle', event.target.value)} /></label><label>Autoplay speed (ms)<input type="number" value={draft.trendingSpeed || 4500} onChange={(event) => update('trendingSpeed', Number(event.target.value))} /></label></div><label>Section subtitle<textarea rows="3" value={draft.trendingSubtitle || ''} onChange={(event) => update('trendingSubtitle', event.target.value)} /></label><label className="admin-switch-row"><input type="checkbox" checked={draft.trendingAutoplay !== false} onChange={(event) => update('trendingAutoplay', event.target.checked)} /><span className="admin-switch" /><span>Enable autoplay</span></label><label className="admin-switch-row"><input type="checkbox" checked={draft.showPromotions !== false} onChange={(event) => update('showPromotions', event.target.checked)} /><span className="admin-switch" /><span>Show promotions section</span></label></div></div>
     <div className="admin-panel admin-form-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Visibility</span><h2>Homepage sections</h2></div></div><div className="admin-visibility-list">{[['showAbout', 'About section', 'Brand story and restaurant values'], ['showPromotions', 'Promotions section', 'Current offers and seasonal specials'], ['showReviews', 'Testimonials section', 'Approved customer reviews']].map(([key, label, description]) => <label className="admin-visibility-item" key={key}><span><strong>{label}</strong><small>{description}</small></span><input type="checkbox" checked={draft[key] !== false} onChange={(event) => update(key, event.target.checked)} /><span className="admin-switch" /></label>)}</div></div>
+    <div className="admin-panel admin-form-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Homepage counters</span><h2>Restaurant highlights</h2><p>Use only restaurant-approved figures. These counters appear directly below the hero.</p></div><span className="admin-status positive"><i />Published</span></div><div className="admin-homepage-stats-editor">{draft.stats.map((item) => <div className="admin-homepage-stat-row" key={item.id}><label>Count<input value={item.value} onChange={(event) => updateStat(item.id, 'value', event.target.value)} placeholder="2+" /></label><label>Label<input value={item.label} onChange={(event) => updateStat(item.id, 'label', event.target.value)} placeholder="Years of Excellence" /></label></div>)}</div></div>
   </div><aside className="admin-editor-side"><div className="admin-panel admin-preview-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Live preview</span><h2>Homepage hero</h2></div><ExternalLink size={16} /></div><div className="admin-hero-preview"><img src={draft.heroSlides.find((slide) => slide.active !== false && slide.desktopImage)?.desktopImage || draft.desktopImage || '/naseeb-chapati-logo.png'} alt="Homepage hero preview" /><div><span>Homepage</span><h3>{draft.heroHeading}</h3><p>{draft.heroText}</p><button type="button">View Menu <ArrowUpRight size={13} /></button></div></div></div><button className="admin-primary-button admin-save-wide" onClick={saveHomepage}><Save size={16} />Publish homepage content</button></aside></div></section>;
 }
 

@@ -1003,6 +1003,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--maroon); box-sha
 }
 .home-page .quick-info-item { border-right-color: rgba(184, 215, 130, .2); color: rgba(255, 255, 255, .9); }
 .home-page .quick-info-item svg { color: var(--home-accent); }
+.homepage-stats { padding: 66px 0 22px; background: var(--white); }
+.homepage-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--line); }
+.homepage-stat { position: relative; display: grid; place-items: center; align-content: center; gap: 8px; min-height: 132px; padding: 24px 18px; text-align: center; }
+.homepage-stat:not(:last-child)::after { position: absolute; top: 25%; right: 0; bottom: 25%; width: 1px; background: var(--line); content: ''; }
+.homepage-stat strong { color: var(--maroon); font-size: clamp(34px, 4vw, 52px); font-weight: 800; line-height: 1; letter-spacing: -.06em; }
+.homepage-stat span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .13em; line-height: 1.4; text-transform: uppercase; }
+.home-page .coverflow-section .section-heading h2 { color: var(--maroon-dark); }
 
 @media (max-width: 820px) {
   .site-header-home .header-inner { min-height: 78px; }
@@ -1022,6 +1029,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--maroon); box-sha
   .home-page .hero-carousel-controls { right: 0; bottom: 27px; }
   .home-page .quick-info { margin-top: -26px; }
   .home-page .quick-info-item { border-right: 0; border-bottom-color: rgba(184, 215, 130, .2); }
+  .homepage-stats { padding-top: 52px; }
+  .homepage-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .homepage-stat:nth-child(2)::after { display: none; }
+  .homepage-stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 580px) {
@@ -1041,6 +1052,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--maroon); box-sha
   .home-page .quick-info { margin-top: -17px; }
   .home-page .quick-info-inner { padding: 8px; }
   .home-page .quick-info-item { min-height: 45px; padding-inline: 8px; font-size: 9px; }
+  .homepage-stats { padding: 42px 0 4px; }
+  .homepage-stat { min-height: 104px; padding: 18px 10px; }
+  .homepage-stat strong { font-size: 34px; }
+  .homepage-stat span { max-width: 130px; font-size: 8px; letter-spacing: .09em; }
 }
 
 /* Keep the homepage header dark after the shared header refinements. */
