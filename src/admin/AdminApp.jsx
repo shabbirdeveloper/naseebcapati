@@ -283,7 +283,7 @@ function tableHeaders(resource) { return ({ menu: ['Item', 'Order', 'Category', 
 function renderCells(resource, row) {
   if (resource === 'menu') return <><td><div className="admin-table-primary"><img src={row.image || '/naseeb-chapati-logo.png'} alt="" /><span><strong>{row.name}</strong><small>{row.badge || 'No badge'}</small></span></div></td><td><span className="admin-order-number">{row.order}</span></td><td>{row.category}</td><td className="admin-money">{formatCurrency(row.price)}</td><td><StatusBadge status={row.status} /><small className="admin-cell-note">{row.stock}</small></td><td><span className="admin-count-chip">{row.branchAvailability?.length || 0} branches</span></td></>;
   if (resource === 'categories') return <><td><div className="admin-table-primary"><span className="admin-category-table-icon"><CategoryIcon name={row.icon} size={18} /></span><span><strong>{row.name}</strong><small>{row.description}</small></span></div></td><td><span className="admin-order-number">{row.order}</span></td><td>{row.featured ? <StatusBadge status="Featured" /> : '—'}</td><td>{row.branches?.length || 0} branches</td><td><StatusBadge status={row.status} /></td></>;
-  if (resource === 'branches') return <><td><div className="admin-table-primary"><img src={row.image} alt="" /><span><strong>{row.name}</strong><small>{row.address}</small></span></div></td><td>{row.manager}</td><td><span className="admin-hour-chip"><Clock3 size={13} />{row.hours?.[1]?.join(' – ') || 'Hours pending'}</span></td><td>{row.facilities?.slice(0, 2).join(' · ')}</td><td><StatusBadge status={row.status} /></td></>;
+  if (resource === 'branches') return <><td><div className="admin-table-primary"><img src={row.image || '/naseeb-chapati-logo.png'} alt={row.imageAlt || `${row.name} branch profile`} /><span><strong>{row.name}</strong><small>{row.address}</small></span></div></td><td>{row.manager}</td><td><span className="admin-hour-chip"><Clock3 size={13} />{row.hours?.[1]?.join(' – ') || 'Hours pending'}</span></td><td>{row.facilities?.slice(0, 2).join(' · ')}</td><td><StatusBadge status={row.status} /></td></>;
   if (resource === 'promotions') return <><td><div className="admin-table-primary"><img src={row.image} alt="" /><span><strong>{row.title}</strong><small>{row.details}</small></span></div></td><td>{row.type}</td><td>{row.startDate || 'Not scheduled'}{row.endDate ? ` – ${row.endDate}` : ''}</td><td>{row.branches}</td><td><StatusBadge status={row.status} /></td></>;
   if (resource === 'gallery') return <><td><div className="admin-table-primary"><img src={row.image} alt="" /><span><strong>{row.title}</strong><small>{row.alt}</small></span></div></td><td>{row.category}</td><td>{row.branch}</td><td>{row.uploadedAt}</td><td><StatusBadge status={row.status} /></td></>;
   if (resource === 'reviews') return <><td><div className="admin-table-primary"><span className="admin-avatar small">{row.name?.slice(0, 2).toUpperCase()}</span><span><strong>{row.name}</strong><small>{row.text}</small></span></div></td><td><span className="admin-rating"><Star size={14} fill="currentColor" />{row.rating}/5</span></td><td>{row.source}</td><td>{row.branch}</td><td><StatusBadge status={row.status} /></td></>;
@@ -307,7 +307,7 @@ function makeNewRecord(resource, rows = [], categories = []) {
     const nextOrder = rows.reduce((highest, row) => Math.max(highest, Number(row.order) || 0), 0) + 1;
     return { id, slug: id, name: 'New category', description: '', image: '', icon: 'utensils', order: nextOrder, status: 'Draft', featured: false, branches: [] };
   }
-  if (resource === 'branches') return { id, slug: id, name: 'New branch', code: 'NC-00', address: '', phone: '', whatsapp: '', email: '', manager: 'Unassigned', status: 'Draft', featured: false, hours: { 1: ['09:00', '22:00'] }, facilities: [] };
+  if (resource === 'branches') return { id, slug: id, name: 'New branch', code: 'NC-00', address: '', phone: '', whatsapp: '', email: '', manager: 'Unassigned', image: '', imageAlt: '', storagePath: '', status: 'Draft', featured: false, hours: { 1: ['09:00', '22:00'] }, facilities: [] };
   if (resource === 'promotions') return { id, slug: id, title: 'New promotion', details: '', type: 'Percentage discount', startDate: '', endDate: '', branches: 'Selected branches', terms: '', image: '', status: 'Draft', featured: false };
   if (resource === 'gallery') return { id, title: 'New gallery image', category: 'Food', branch: 'All branches', image: '', alt: '', status: 'Draft', featured: false, uploadedAt: 'Today' };
   if (resource === 'reviews') return { id, name: 'New reviewer', rating: 5, text: '', source: 'Manual review', branch: 'All branches', status: 'Pending', featured: false, date: 'Today' };
@@ -323,7 +323,7 @@ function RecordDrawer({ resource, record, onSave, onClose }) {
   const [imageError, setImageError] = useState('');
   const update = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
   const updateHours = (day, slot, value) => setDraft((current) => ({ ...current, hours: { ...current.hours, [day]: (current.hours?.[day] || ['', '']).map((time, index) => index === slot ? value : time) } }));
-  const fields = resource === 'menu' ? [['name', 'Item name'], ['category', 'Category'], ['order', 'Display order'], ['price', 'Base price'], ['status', 'Status'], ['stock', 'Stock status'], ['description', 'Short description'], ['ingredients', 'Ingredients']] : resource === 'categories' ? [['name', 'Category name'], ['icon', 'Category icon'], ['order', 'Display order'], ['status', 'Status'], ['description', 'Description']] : resource === 'branches' ? [['name', 'Branch name'], ['code', 'Branch code'], ['address', 'Full address'], ['phone', 'Phone'], ['whatsapp', 'WhatsApp'], ['manager', 'Branch manager'], ['status', 'Status']] : resource === 'promotions' ? [['title', 'Promotion title'], ['type', 'Promotion type'], ['startDate', 'Start date'], ['endDate', 'End date'], ['branches', 'Applicable branches'], ['status', 'Status'], ['details', 'Short description'], ['terms', 'Terms and conditions']] : resource === 'gallery' ? [['title', 'Title'], ['category', 'Category'], ['branch', 'Branch'], ['alt', 'Image alt text'], ['status', 'Status']] : resource === 'reviews' ? [['name', 'Customer name'], ['rating', 'Rating'], ['branch', 'Branch'], ['status', 'Status'], ['text', 'Review text']] : resource === 'reservations' ? [['name', 'Customer name'], ['phone', 'Phone'], ['email', 'Email'], ['branch', 'Branch'], ['date', 'Date'], ['time', 'Time'], ['guests', 'Guests'], ['status', 'Status'], ['notes', 'Internal notes']] : resource === 'enquiries' ? [['name', 'Name'], ['email', 'Email'], ['phone', 'Phone'], ['branch', 'Branch'], ['subject', 'Subject'], ['status', 'Status'], ['message', 'Message'], ['notes', 'Internal notes']] : resource === 'social' ? [['title', 'Account title'], ['href', 'Profile URL'], ['username', 'Username'], ['description', 'Card description'], ['ctaLabel', 'Button label'], ['status', 'Status'], ['displayOrder', 'Display order']] : resource === 'seo' ? [['page', 'Page'], ['path', 'Path'], ['title', 'Meta title'], ['description', 'Meta description'], ['status', 'Status']] : [['name', 'Name'], ['description', 'Description'], ['status', 'Status']];
+  const fields = resource === 'menu' ? [['name', 'Item name'], ['category', 'Category'], ['order', 'Display order'], ['price', 'Base price'], ['status', 'Status'], ['stock', 'Stock status'], ['description', 'Short description'], ['ingredients', 'Ingredients']] : resource === 'categories' ? [['name', 'Category name'], ['icon', 'Category icon'], ['order', 'Display order'], ['status', 'Status'], ['description', 'Description']] : resource === 'branches' ? [['name', 'Branch name'], ['code', 'Branch code'], ['address', 'Full address'], ['imageAlt', 'Profile image alt text'], ['phone', 'Phone'], ['whatsapp', 'WhatsApp'], ['manager', 'Branch manager'], ['status', 'Status']] : resource === 'promotions' ? [['title', 'Promotion title'], ['type', 'Promotion type'], ['startDate', 'Start date'], ['endDate', 'End date'], ['branches', 'Applicable branches'], ['status', 'Status'], ['details', 'Short description'], ['terms', 'Terms and conditions']] : resource === 'gallery' ? [['title', 'Title'], ['category', 'Category'], ['branch', 'Branch'], ['alt', 'Image alt text'], ['status', 'Status']] : resource === 'reviews' ? [['name', 'Customer name'], ['rating', 'Rating'], ['branch', 'Branch'], ['status', 'Status'], ['text', 'Review text']] : resource === 'reservations' ? [['name', 'Customer name'], ['phone', 'Phone'], ['email', 'Email'], ['branch', 'Branch'], ['date', 'Date'], ['time', 'Time'], ['guests', 'Guests'], ['status', 'Status'], ['notes', 'Internal notes']] : resource === 'enquiries' ? [['name', 'Name'], ['email', 'Email'], ['phone', 'Phone'], ['branch', 'Branch'], ['subject', 'Subject'], ['status', 'Status'], ['message', 'Message'], ['notes', 'Internal notes']] : resource === 'social' ? [['title', 'Account title'], ['href', 'Profile URL'], ['username', 'Username'], ['description', 'Card description'], ['ctaLabel', 'Button label'], ['status', 'Status'], ['displayOrder', 'Display order']] : resource === 'seo' ? [['page', 'Page'], ['path', 'Path'], ['title', 'Meta title'], ['description', 'Meta description'], ['status', 'Status']] : [['name', 'Name'], ['description', 'Description'], ['status', 'Status']];
   const menuCategoryOptions = useMemo(() => {
     const options = [...(record._categoryOptions || [])]
       .filter((category) => !['Archived', 'Inactive'].includes(category.status) && category.name)
@@ -332,7 +332,7 @@ function RecordDrawer({ resource, record, onSave, onClose }) {
     return draft.category && !options.includes(draft.category) ? [draft.category, ...options] : options;
   }, [record._categoryOptions, draft.category]);
 
-  const uploadMenuImage = async (event) => {
+  const uploadRecordImage = async (event) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
     if (!file) return;
@@ -346,7 +346,7 @@ function RecordDrawer({ resource, record, onSave, onClose }) {
     setUploadingImage(true);
     try {
       if (isSupabaseConfigured) {
-        const uploaded = await uploadMediaFile(file, 'menu');
+        const uploaded = await uploadMediaFile(file, resource === 'branches' ? 'branches/profiles' : 'menu');
         if (uploaded.error) throw uploaded.error;
         setDraft((current) => ({ ...current, image: uploaded.url, storagePath: uploaded.path }));
       } else {
@@ -384,16 +384,16 @@ function RecordDrawer({ resource, record, onSave, onClose }) {
   return <div className="admin-drawer-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !uploadingImage && onClose()}>
     <aside className="admin-drawer">
       <div className="admin-drawer-head"><div><span className="admin-eyebrow">{record.id?.startsWith('new-') ? 'Create record' : 'Edit record'}</span><h2>{resourceConfig[resource]?.title || 'Edit content'}</h2></div><button className="admin-icon-button" onClick={onClose} aria-label="Close editor" disabled={uploadingImage}><X size={18} /></button></div>
-      {resource === 'menu' && <>
+      {(resource === 'menu' || resource === 'branches') && <>
         <div className={`admin-drawer-image ${uploadingImage ? 'is-uploading' : ''}`}>
-          <img src={draft.image || '/naseeb-chapati-logo.png'} alt={`${draft.name || 'Menu item'} preview`} />
-          <label className="admin-image-edit"><Edit3 size={14} />{uploadingImage ? 'Uploading…' : 'Change image'}<input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={uploadMenuImage} disabled={uploadingImage} /></label>
+          <img src={draft.image || '/naseeb-chapati-logo.png'} alt={draft.imageAlt || `${draft.name || (resource === 'branches' ? 'Branch' : 'Menu item')} preview`} />
+          <label className="admin-image-edit"><Edit3 size={14} />{uploadingImage ? 'Uploading…' : resource === 'branches' ? 'Change branch photo' : 'Change image'}<input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={uploadRecordImage} disabled={uploadingImage} /></label>
         </div>
-        <div className="admin-menu-image-controls">
-          <label>Image URL<input type="url" value={draft.image || ''} onChange={(event) => { update('image', event.target.value); setImageError(''); }} placeholder="Upload an image or paste a public URL" disabled={uploadingImage} /></label>
+        <div className="admin-record-image-controls">
+          <label>{resource === 'branches' ? 'Branch profile image URL' : 'Image URL'}<input type="url" value={draft.image || ''} onChange={(event) => { update('image', event.target.value); setImageError(''); }} placeholder="Upload an image or paste a public URL" disabled={uploadingImage} /></label>
           <small>PNG, JPG, WebP, or AVIF · maximum 5 MB</small>
           {imageError && <div className="admin-form-error" role="alert"><CircleAlert size={16} />{imageError}</div>}
-          {uploadingImage && <div className="admin-menu-image-progress" role="status" aria-live="polite"><RefreshCw size={15} />Uploading image to storage…</div>}
+          {uploadingImage && <div className="admin-record-image-progress" role="status" aria-live="polite"><RefreshCw size={15} />Uploading image to storage…</div>}
         </div>
       </>}
       <form className="admin-form admin-drawer-form" onSubmit={submitRecord}>

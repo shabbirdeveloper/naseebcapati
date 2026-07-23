@@ -275,12 +275,12 @@
 .admin-image-edit:hover { background: var(--admin-green); }
 .admin-image-edit:focus-within { outline: 3px solid rgba(155, 207, 104, .4); outline-offset: 2px; }
 .admin-image-edit input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
-.admin-menu-image-controls { display: grid; gap: 8px; margin: -8px 0 20px; }
-.admin-menu-image-controls > label { display: grid; gap: 7px; color: var(--admin-ink); font-size: 10px; font-weight: 800; }
-.admin-menu-image-controls input { min-height: 38px; padding: 0 11px; border: 1px solid var(--admin-border); border-radius: 8px; background: white; color: var(--admin-ink); font: inherit; font-weight: 600; }
-.admin-menu-image-controls > small { color: var(--admin-muted); font-size: 9px; }
-.admin-menu-image-progress { display: flex; align-items: center; gap: 7px; color: var(--admin-green); font-size: 10px; font-weight: 800; }
-.admin-menu-image-progress svg { animation: admin-image-spin .9s linear infinite; }
+.admin-record-image-controls { display: grid; gap: 8px; margin: -8px 0 20px; }
+.admin-record-image-controls > label { display: grid; gap: 7px; color: var(--admin-ink); font-size: 10px; font-weight: 800; }
+.admin-record-image-controls input { min-height: 38px; padding: 0 11px; border: 1px solid var(--admin-border); border-radius: 8px; background: white; color: var(--admin-ink); font: inherit; font-weight: 600; }
+.admin-record-image-controls > small { color: var(--admin-muted); font-size: 9px; }
+.admin-record-image-progress { display: flex; align-items: center; gap: 7px; color: var(--admin-green); font-size: 10px; font-weight: 800; }
+.admin-record-image-progress svg { animation: admin-image-spin .9s linear infinite; }
 @keyframes admin-image-spin { to { transform: rotate(360deg); } }
 .admin-drawer-form { padding-top: 22px; }
 .admin-drawer-fields { display: grid; gap: 13px; }
