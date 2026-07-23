@@ -13,6 +13,7 @@ const TeamPage = lazy(() => import('./team/TeamPages').then((module) => ({ defau
 const TeamProfilePage = lazy(() => import('./team/TeamPages').then((module) => ({ default: module.TeamProfilePage })));
 const ServicesPage = lazy(() => import('./services/ServicesPages').then((module) => ({ default: module.ServicesPage })));
 const ServiceDetailPage = lazy(() => import('./services/ServicesPages').then((module) => ({ default: module.ServiceDetailPage })));
+const DegreeSample = lazy(() => import('./degree/DegreeSample'));
 
 const navItems = [
   { label: 'Home', href: '/' }, { label: 'Menu', href: '/menu' }, { label: 'Services', href: '/services' }, { label: 'Promotions', href: '/promotions' }, { label: 'Branches', href: '/branches' }, { label: 'About Us', href: '/about' }, { label: 'Our Team', href: '/our-team' }, { label: 'Gallery', href: '/gallery' }, { label: 'Contact', href: '/contact' },
@@ -352,7 +353,8 @@ function HomepageStats() {
 
 function FoodCoverflow() {
   const featuredItems = Array.isArray(homepageContent.featuredItems) ? homepageContent.featuredItems : [];
-  const slides = (featuredItems.length ? featuredItems.map((id) => menuItems.find((item) => item.id === id)).filter(Boolean) : menuItems).slice(0, 7);
+  const selectedItems = featuredItems.map((id) => menuItems.find((item) => item.id === id)).filter(Boolean);
+  const slides = (selectedItems.length ? selectedItems : menuItems).slice(0, 7);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -605,6 +607,7 @@ function App() {
   const [path, setPath] = useState(getPath());
   useEffect(() => { const handle = () => setPath(getPath()); window.addEventListener('popstate', handle); return () => window.removeEventListener('popstate', handle); }, []);
   if (path.startsWith('/admin')) return <AdminErrorBoundary><AdminApp /></AdminErrorBoundary>;
+  if (path === '/degree-sample') return <Suspense fallback={null}><DegreeSample /></Suspense>;
   let page = <NotFoundPage />;
   if (path === '/') page = <HomePage />;
   else if (path === '/menu') page = <MenuPage />;
