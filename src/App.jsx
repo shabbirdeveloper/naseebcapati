@@ -447,11 +447,11 @@ function DishCard({ item, onDetails, index = 0 }) {
 
 function BestSellers() {
   const [filter, setFilter] = useState('All');
-  const filters = ['All', 'Breakfast', 'Main Course', 'Grill', 'Drinks', 'Desserts'];
+  const filters = ['All', ...menuCategories.map((category) => category.name)];
   const [selected, setSelected] = useState(null);
   const reduceMotion = useReducedMotion();
-  const filtered = menuItems.filter((item) => filter === 'All' || item.filter === filter).slice(0, 8);
-  return <section className="section best-sellers"><div className="container"><SectionHeading title="Our Menu" copy="A few guest favourites to start your next order." action={<Button href="/menu" variant="text" icon={ArrowUpRight}>See full menu</Button>} /><div className="filter-tabs" role="tablist" aria-label="Filter menu dishes">{filters.map((item) => <motion.button whileTap={reduceMotion ? undefined : { scale: .96 }} key={item} role="tab" aria-selected={filter === item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>{item}</motion.button>)}</div><div className="dish-grid"><AnimatePresence mode="popLayout">{filtered.map((item, index) => <DishCard key={item.id} item={item} index={index} onDetails={setSelected} />)}</AnimatePresence></div><AnimatePresence>{selected && <DishModal item={selected} onClose={() => setSelected(null)} />}</AnimatePresence></div></section>;
+  const filtered = menuItems.filter((item) => filter === 'All' || item.category === filter).slice(0, 8);
+  return <section className="section best-sellers"><div className="container"><SectionHeading title="Our Menu" copy="A few guest favourites to start your next order." action={<Button href="/menu" variant="text" icon={ArrowUpRight}>See full menu</Button>} /><div className="filter-tabs" role="tablist" aria-label="Filter menu dishes">{filters.map((item) => <motion.button whileTap={reduceMotion ? undefined : { scale: .96 }} key={item} role="tab" aria-selected={filter === item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>{item}</motion.button>)}</div>{filtered.length ? <div className="dish-grid"><AnimatePresence mode="popLayout">{filtered.map((item, index) => <DishCard key={item.id} item={item} index={index} onDetails={setSelected} />)}</AnimatePresence></div> : <div className="empty-state"><Utensils size={28} /><h3>No dishes published in this category yet</h3><p>Add or assign menu items from the admin dashboard.</p></div>}<AnimatePresence>{selected && <DishModal item={selected} onClose={() => setSelected(null)} />}</AnimatePresence></div></section>;
 }
 
 function BranchStatus({ branch }) {
