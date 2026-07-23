@@ -2,7 +2,7 @@ import { Component, Suspense, createContext, lazy, useCallback, useContext, useE
 import { createPortal } from 'react-dom';
 import { AnimatePresence, LazyMotion, domAnimation, m as motion, useReducedMotion } from 'framer-motion';
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Music2, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, Bike, BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Clock3, Flame, Heart, Home, Leaf, Mail, MapPin, Menu as MenuIcon, MessageCircle, Moon, Navigation, Phone, Search, Send, Share2, ShoppingBag, ShoppingCart, Star, TicketPercent, Utensils, Users, X, } from 'lucide-react';
 import { branches, contactInfo, galleryItems, heroSlides, homepageContent, imageUrls, menuCategories, menuItems, promotions, reviews, servicesContent, socialLinks } from './data/content';
 import { CategoryIcon } from './categoryIcons';
 import AdminApp from './admin/AdminApp';
@@ -505,14 +505,32 @@ function ReservationSection() {
 
 function CalendarGlyph() { return <div className="calendar-glyph"><span>OPEN</span><strong>24</strong></div>; }
 
+function FacebookBrandIcon({ size = 34, ...props }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}><path fill="currentColor" d="M13.62 22v-9.12h3.06l.46-3.56h-3.52V7.05c0-1.03.29-1.73 1.76-1.73h1.88V2.14A25.2 25.2 0 0 0 14.52 2c-2.71 0-4.57 1.65-4.57 4.68v2.64H6.88v3.56h3.07V22h3.67Z" /></svg>;
+}
+
+function InstagramBrandIcon({ size = 34, ...props }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}><rect x="3" y="3" width="18" height="18" rx="5.2" stroke="currentColor" strokeWidth="2.15" /><circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="2.15" /><circle cx="17.35" cy="6.7" r="1.25" fill="currentColor" /></svg>;
+}
+
+function TikTokBrandIcon({ size = 34, ...props }) {
+  const mark = 'M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.1 2.7 1.6 4.24 1.77v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-1.94-1.14-3.31-3.19-3.51-5.43-.02-.48-.03-.96-.01-1.43.18-2.17 1.46-4.2 3.32-5.33 2.11-1.33 4.84-1.27 6.93-.01.01 1.47-.04 2.93-.04 4.4-.95-.46-2.08-.65-3.1-.34-1.73.53-2.79 2.32-2.4 4.08.25 1.4 1.53 2.53 2.95 2.62 1.58.1 3.1-.93 3.58-2.43.16-.37.17-.78.17-1.18V.03c.7-.01 1.39-.01 2.09-.01Z';
+  return <svg width={size} height={size} viewBox="-1 -1 26 26" fill="none" aria-hidden="true" {...props}><path d={mark} fill="#25F4EE" transform="translate(-.45 .45)" /><path d={mark} fill="#FE2C55" transform="translate(.45 -.25)" /><path d={mark} fill="currentColor" /></svg>;
+}
+
+function GoogleBrandIcon({ size = 34, ...props }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}><path fill="#4285F4" d="M21.56 12.23c0-.71-.06-1.4-.18-2.06H12v3.9h5.36a4.58 4.58 0 0 1-1.99 3v2.53h3.22c1.88-1.73 2.97-4.29 2.97-7.37Z" /><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.6-2.4l-3.23-2.53c-.89.6-2.03.96-3.37.96-2.6 0-4.8-1.76-5.59-4.12H3.08v2.61A9.98 9.98 0 0 0 12 22Z" /><path fill="#FBBC05" d="M6.41 13.91A6 6 0 0 1 6.1 12c0-.66.11-1.31.31-1.91V7.48H3.08A10 10 0 0 0 2 12c0 1.61.38 3.13 1.08 4.52l3.33-2.61Z" /><path fill="#EA4335" d="M12 5.97c1.47 0 2.78.51 3.82 1.49l2.85-2.86A9.56 9.56 0 0 0 12 2a9.98 9.98 0 0 0-8.92 5.48l3.33 2.61C7.2 7.73 9.4 5.97 12 5.97Z" /></svg>;
+}
+
+const socialPlatformDetails = {
+  facebook: { icon: FacebookBrandIcon, description: 'Follow our page for restaurant news, promotions, and daily updates.', cta: 'Like page' },
+  instagram: { icon: InstagramBrandIcon, description: 'Explore fresh dishes, restaurant moments, and food photography.', cta: 'Follow us' },
+  tiktok: { icon: TikTokBrandIcon, description: 'Watch our latest food videos, kitchen moments, and behind-the-scenes stories.', cta: 'Watch now' },
+  google: { icon: GoogleBrandIcon, description: 'Read guest feedback and leave your own review for Naseeb Chapati.', cta: 'Write a review' },
+};
+
 function SocialSection() {
-  const platformDetails = {
-    facebook: { icon: Share2, description: 'Follow our page for restaurant news, promotions, and daily updates.', cta: 'Like page' },
-    instagram: { icon: Heart, description: 'Explore fresh dishes, restaurant moments, and food photography.', cta: 'Follow us' },
-    tiktok: { icon: Music2, description: 'Watch our latest food videos, kitchen moments, and behind-the-scenes stories.', cta: 'Watch now' },
-    google: { icon: Star, description: 'Read guest feedback and leave your own review for Naseeb Chapati.', cta: 'Write a review' },
-  };
-  return <section className="social-section"><div className="container social-inner"><MotionReveal className="social-heading" y={14}><p className="eyebrow">Stay connected</p><h2>Follow Our <span>Social Media</span></h2><p>Stay connected with us for the latest dishes, restaurant news, offers, and guest updates.</p></MotionReveal><MotionGroup className="social-links social-card-grid" amount={.14}>{socialLinks.slice().sort((a, b) => (Number(a.displayOrder) || 999) - (Number(b.displayOrder) || 999)).slice(0, 4).map((social, index) => { const details = platformDetails[social.className] || { icon: Share2, description: 'Keep up with the latest from Naseeb Chapati.', cta: 'Follow us' }; const SocialIcon = details.icon; return <MotionCard as="a" className={`social-card ${social.className || ''}`} key={social.label} index={index} href={social.href} target="_blank" rel="noreferrer" aria-label={`${social.title || social.label}: ${social.ctaLabel || details.cta}`}><span className="social-card-icon"><SocialIcon size={31} strokeWidth={2} /></span><h3>{social.title || social.label}</h3><strong>{social.username || 'Naseeb Chapati'}</strong><p>{social.description || details.description}</p><span className="social-card-cta">{social.ctaLabel || details.cta}<ArrowUpRight size={15} /></span></MotionCard>; })}</MotionGroup></div></section>;
+  return <section className="social-section"><div className="container social-inner"><MotionReveal className="social-heading" y={14}><p className="eyebrow">Stay connected</p><h2>Follow Our <span>Social Media</span></h2><p>Stay connected with us for the latest dishes, restaurant news, offers, and guest updates.</p></MotionReveal><MotionGroup className="social-links social-card-grid" amount={.14}>{socialLinks.slice().sort((a, b) => (Number(a.displayOrder) || 999) - (Number(b.displayOrder) || 999)).slice(0, 4).map((social, index) => { const details = socialPlatformDetails[social.className] || { icon: Share2, description: 'Keep up with the latest from Naseeb Chapati.', cta: 'Follow us' }; const SocialIcon = details.icon; return <MotionCard as="a" className={`social-card ${social.className || ''}`} key={social.label} index={index} href={social.href} target="_blank" rel="noreferrer" aria-label={`${social.title || social.label}: ${social.ctaLabel || details.cta}`}><span className="social-card-icon" aria-hidden="true"><SocialIcon size={34} strokeWidth={2} /></span><h3>{social.title || social.label}</h3><strong>{social.username || 'Naseeb Chapati'}</strong><p>{social.description || details.description}</p><span className="social-card-cta">{social.ctaLabel || details.cta}<ArrowUpRight size={15} /></span></MotionCard>; })}</MotionGroup></div></section>;
 }
 
 function HomePage() {
