@@ -352,7 +352,8 @@ function HomepageStats() {
 }
 
 function FoodCoverflow() {
-  const slides = menuItems.filter((item) => item.featured === true);
+  const featuredSlides = menuItems.filter((item) => item.featured === true);
+  const slides = featuredSlides.length ? featuredSlides : menuItems.slice(0, 7);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragging, setDragging] = useState(false);
