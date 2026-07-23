@@ -352,15 +352,16 @@ function HomepageStats() {
 }
 
 function FoodCoverflow() {
-  const featuredItems = Array.isArray(homepageContent.featuredItems) ? homepageContent.featuredItems : [];
-  const selectedItems = featuredItems.map((id) => menuItems.find((item) => item.id === id)).filter(Boolean);
-  const slides = (selectedItems.length ? selectedItems : menuItems).slice(0, 7);
+  const slides = menuItems.filter((item) => item.featured === true);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragging, setDragging] = useState(false);
   const pointerStart = useRef(null);
-  const step = (direction) => setActive((current) => (current + direction + slides.length) % slides.length);
-  useEffect(() => { if (paused || homepageContent.trendingAutoplay === false) return undefined; const timer = window.setInterval(() => step(1), Math.max(2500, Number(homepageContent.trendingSpeed) || 4500)); return () => window.clearInterval(timer); }, [paused, slides.length]);
+  const step = useCallback((direction) => {
+    if (!slides.length) return;
+    setActive((current) => (current + direction + slides.length) % slides.length);
+  }, [slides.length]);
+  useEffect(() => { if (!slides.length || paused || homepageContent.trendingAutoplay === false) return undefined; const timer = window.setInterval(() => step(1), Math.max(2500, Number(homepageContent.trendingSpeed) || 4500)); return () => window.clearInterval(timer); }, [paused, slides.length, step]);
   const stopDragging = () => { pointerStart.current = null; setDragging(false); setPaused(false); };
   const onPointerDown = (event) => { if (event.target.closest?.('button, a')) return; pointerStart.current = event.clientX; setDragging(true); setPaused(true); event.currentTarget.setPointerCapture?.(event.pointerId); };
   const onPointerUp = (event) => { if (pointerStart.current != null) { const diff = event.clientX - pointerStart.current; if (Math.abs(diff) > 34) step(diff < 0 ? 1 : -1); } stopDragging(); };

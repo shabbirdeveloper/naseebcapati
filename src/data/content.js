@@ -154,6 +154,7 @@ export const menuItems = (persistedAdminState?.menuItems?.length
   .map((item, index) => ({
     ...item,
     order: Number.isFinite(Number(item.order)) && Number(item.order) > 0 ? Number(item.order) : index + 1,
+    featured: typeof item.featured === 'boolean' ? item.featured : index < 7,
     availability: Array.isArray(item.availability) ? item.availability : (Array.isArray(item.branchAvailability) ? item.branchAvailability : []),
   }))
   .sort((a, b) => a.order - b.order || String(a.name || '').localeCompare(String(b.name || '')));

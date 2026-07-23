@@ -224,6 +224,10 @@
 .admin-hour-chip svg { color: var(--admin-green); }
 .admin-rating { display: inline-flex; align-items: center; gap: 4px; color: var(--admin-green); font-weight: 800; }
 .admin-rating svg { color: var(--admin-green); }
+.admin-feature-toggle { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 9px; border: 1px solid var(--admin-border); border-radius: 999px; background: var(--admin-white); color: var(--admin-muted); font-size: 8px; font-weight: 800; white-space: nowrap; transition: border-color .2s, background .2s, color .2s, box-shadow .2s, transform .2s; }
+.admin-feature-toggle:hover { border-color: rgba(31,77,58,.45); color: var(--admin-green); transform: translateY(-1px); }
+.admin-feature-toggle.active { border-color: rgba(31,77,58,.28); background: rgba(31,77,58,.1); color: var(--admin-green); box-shadow: 0 0 0 2px rgba(31,77,58,.04); }
+.admin-feature-toggle:focus-visible { outline: 3px solid rgba(31,77,58,.16); outline-offset: 2px; }
 .admin-social-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(31,77,58,.1); color: var(--admin-green); }
 .admin-truncate { display: block; max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-table code { padding: 4px 6px; border-radius: 5px; background: var(--admin-soft); color: var(--admin-green-dark); font-size: 9px; }

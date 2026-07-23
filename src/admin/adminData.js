@@ -230,6 +230,7 @@ function normalizeAdminState(state) {
   normalized.menuItems = normalized.menuItems.map((item, index) => ({
     ...item,
     order: Number.isFinite(Number(item.order)) && Number(item.order) > 0 ? Number(item.order) : index + 1,
+    featured: typeof item.featured === 'boolean' ? item.featured : index < 4,
   }));
   ['user', 'settings'].forEach((key) => {
     const value = incoming[key];
