@@ -429,7 +429,9 @@ function DishCard({ item, onDetails, index = 0 }) {
     exit={{ opacity: 0, y: 12, scale: .98 }}
   >
     <div className="dish-card-image">
-      <SafeImage src={item.image} alt={item.name} loading="lazy" />
+      <div className="dish-card-photo">
+        <SafeImage src={item.image} alt={item.name} loading="lazy" />
+      </div>
       <span className="food-badge">{item.badge}</span>
       <button className="dish-card-quick-view" type="button" onClick={() => onDetails?.(item)} aria-label={`View ${item.name} details`}><ArrowUpRight size={17} /></button>
     </div>
